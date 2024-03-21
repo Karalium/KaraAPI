@@ -19,7 +19,6 @@ public class ScoreBoardBuilder {
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
         this.title = title;
     }
-
     public ScoreBoardBuilder setTitle(String title){
         objective.displayName(buildString(title));
         this.title = title;

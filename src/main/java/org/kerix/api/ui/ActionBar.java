@@ -83,7 +83,6 @@ public class ActionBar {
         if (!sentAnimations) sendAnimations();
     }
 
-
     private static void sendAnimations() {
         sentAnimations = true;
         new BukkitRunnable() {

@@ -127,7 +127,6 @@ public abstract class ConfigManager {
     public double getYamlSectionDouble(@NotNull String index) {
         return Objects.requireNonNull(yml.getConfigurationSection(getKey())).getDouble(index);
     }
-
     public String getYamlSectionString(@NotNull String index) {
         return Objects.requireNonNull(yml.getConfigurationSection(getKey())).getString(index);
     }

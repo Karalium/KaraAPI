@@ -25,6 +25,7 @@ public class DebugMessageAPI {
         if(args != null) {
             String statut;
             ConsoleColor statutColor = switch (args) {
+
                 case ENABLE -> {
                     statut = " On";
                     yield ConsoleColor.GREEN;

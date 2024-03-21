@@ -27,6 +27,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder lore(String @NotNull ... lore){
+
         ArrayList<Component> l = new ArrayList<>();
         for (String s : lore) {
             l.add(Component.text(s.replace("&" , "§")));

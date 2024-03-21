@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class StringBuilder {
 
-
     public static Component buildString(String str){
         return Component.text(str.replace("&","§"));
     }

@@ -41,6 +41,7 @@ public class ArmorBuilder extends ItemBuilder{
             LeatherArmorMeta armorMeta = (LeatherArmorMeta) itemStack.getItemMeta();
             armorMeta.setColor(leatherColor);
             itemStack.setItemMeta(armorMeta);
+
         }
         return itemStack;
     }
