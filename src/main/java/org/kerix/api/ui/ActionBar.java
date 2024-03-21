@@ -99,7 +99,6 @@ public class ActionBar {
                         playersWithAnimation.remove(player);
                         return;
                     }
-
                     int length = messages.length;
 
                     if (i >= length) {
