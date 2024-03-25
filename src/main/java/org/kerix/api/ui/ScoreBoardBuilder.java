@@ -3,7 +3,6 @@ package org.kerix.api.ui;
 import org.bukkit.Bukkit;
 import org.bukkit.scoreboard.*;
 import java.util.HashMap;
-import java.util.logging.Logger;
 
 import static org.kerix.api.utils.StringBuilder.*;
 
@@ -50,7 +49,7 @@ public class ScoreBoardBuilder {
         Team team = teams.get(teamName);
         if(team == null) return this;
         team.prefix(buildString(arg));
-        objective.getScore("§" + (i > 9 ? "1" : "0") + (i > 9 ? (i - 10) : i) + "§" + (i > 9 ? (i - 10) : i) + "§n").setScore(i-1);
+        objective.getScore("§" + (i > 9 ? "1" : "0") + (i > 9 ? (i - 10) : i) + "§" + (i > 9 ? (i - 10) : i) + "§n").setScore(15-i);
         return this;
     }
     public Scoreboard build() {

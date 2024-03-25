@@ -7,65 +7,15 @@ import org.jetbrains.annotations.NotNull;
 import org.kerix.api.utils.Pair;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 import static org.kerix.api.MinecraftAPI.getINSTANCE;
 
-public class ActionBar {
+public class ActionBarAPI {
 
     private static final HashMap<Player, CountdownInfo> countdowns = new HashMap<>();
     private static final HashMap<Player , AnimationState> playersWithAnimation = new HashMap<>();
     private static boolean sentCountdowns = false;
     private static boolean sentAnimations = false;
-
-
-
-
-    private static void sendCountdowns() {
-        sentCountdowns = true;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                countdowns.forEach((player, info) -> {
-                    if (!player.isOnline()) return;
-
-                    Pair<Integer, Integer> timeRange = info.getMessage().getSecond();
-                    int start = timeRange.getFirst();
-                    int end = timeRange.getSecond();
-
-                    boolean countDown = true; // Default to counting down
-
-                    if (!info.isCountDownDetermined()) {
-                        countDown = start > end; // Determine countdown direction
-                        info.setCountDownDetermined(true);
-                    }
-
-                    if (countDown) {
-                        if (end < start) {
-                            countdowns.remove(player);
-                        } else {
-                            String msg = getString(info.getMessage(), end);
-                            send(player, msg);
-                            timeRange.setSecond(end - 1);
-                        }
-                    } else {
-                        String msg = getString(info.getMessage(), end);
-                        send(player, msg);
-                        timeRange.setSecond(end + 1);
-                    }
-                });
-            }
-
-            @NotNull
-            private String getString(Pair<String, Pair<Integer, Integer>> message, int end) {
-                int hours = end / 3600, minutes = (end % 3600) / 60, seconds = end % 60;
-                String formattedCountdown = (hours > 0) ? String.format("%02dh:%02dm:%02ds", hours, minutes, seconds) :
-                        (minutes > 0) ? String.format("%02dm:%02ds", minutes, seconds) : String.format("%02ds", seconds);
-
-                return message.getFirst() + " " + formattedCountdown;
-            }
-        }.runTaskTimer(getINSTANCE(), 0, 20);
-    }
 
     public static void send(Player player, String message) {
         player.sendActionBar(Component.text(message.replace("&", "§")));
@@ -117,8 +67,51 @@ public class ActionBar {
             }
         }.runTaskTimer(getINSTANCE(), 0, 5);
     }
+    private static void sendCountdowns() {
+        sentCountdowns = true;
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                countdowns.forEach((player, info) -> {
+                    if (!player.isOnline()) return;
 
+                    Pair<Integer, Integer> timeRange = info.getMessage().getSecond();
+                    int start = timeRange.getFirst();
+                    int end = timeRange.getSecond();
 
+                    boolean countDown = true; // Default to counting down
+
+                    if (!info.isCountDownDetermined()) {
+                        countDown = start > end; // Determine countdown direction
+                        info.setCountDownDetermined(true);
+                    }
+
+                    if (countDown) {
+                        if (end < start) {
+                            countdowns.remove(player);
+                        } else {
+                            String msg = getString(info.getMessage(), end);
+                            send(player, msg);
+                            timeRange.setSecond(end - 1);
+                        }
+                    } else {
+                        String msg = getString(info.getMessage(), end);
+                        send(player, msg);
+                        timeRange.setSecond(end + 1);
+                    }
+                });
+            }
+
+            @NotNull
+            private String getString(Pair<String, Pair<Integer, Integer>> message, int end) {
+                int hours = end / 3600, minutes = (end % 3600) / 60, seconds = end % 60;
+                String formattedCountdown = (hours > 0) ? String.format("%02dh:%02dm:%02ds", hours, minutes, seconds) :
+                        (minutes > 0) ? String.format("%02dm:%02ds", minutes, seconds) : String.format("%02ds", seconds);
+
+                return message.getFirst() + " " + formattedCountdown;
+            }
+        }.runTaskTimer(getINSTANCE(), 0, 20);
+    }
     private static class AnimationState {
         private int index = 0;
         private int stop = 0;

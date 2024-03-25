@@ -85,11 +85,39 @@ import org.kerix.api.items.ItemBuilder;
 - ActionBar creation :
 
 ```java
-import org.kerix.api.ui.ActionBar;
+import org.kerix.api.ui.ActionBarAPI;
 
-    ActionBar.send(player , "Your message");
-    ActionBar.send(player , "Your message" , CountDownstart , CountDownEnd);
-    ActionBar.send(player , RepetitionTimes , "Message1" , "Message2" , "Message3" ...);
+    ActionBarAPI.send(player , "Your message");
+    ActionBarAPI.send(player , "Your message" , CountDownstart , CountDownEnd);
+    ActionBarAPI.send(player , RepetitionTimes , "Message1" , "Message2" , "Message3" ...);
+```
+- ScoreBoard creation (**Work in progress**) :
+
+```java
+import org.bukkit.scoreboard.Scoreboard;
+import org.kerix.api.ui.ScoreBoardBuilder;
+
+    Scoreboard scoreboard = new ScoreBoardBuilder("Scoreboard")
+            .setLines("Test1" , "Test2" , "Test3")
+            .setLine(1 , "Hello , this is the first line")
+            .build();
+```
+
+- BossBar creation (**Work in progress**) :
+
+```java
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarFlag;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
+import org.kerix.api.ui.BossBarBuilder;
+
+    BossBar scoreboard = new BossBarBuilder("bossbar")
+            .color(BarColor.RED)
+            .style(BarStyle.SEGMENTED_10)
+            .addFlag(BarFlag.PLAY_BOSS_MUSIC)
+            .removeFlag(BarFlag.CREATE_FOG)
+            .build();
 ```
 
 

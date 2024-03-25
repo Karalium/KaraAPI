@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.api.configapi.ConfigManager;
 import org.kerix.api.startapi.DebugMessageAPI;
 import org.kerix.api.startapi.StatutMessageList;
+import org.kerix.api.ui.BossBarBuilder;
 
 public final class MinecraftAPI extends JavaPlugin {
 
