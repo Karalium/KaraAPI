@@ -1,5 +1,8 @@
 name: KaraAPI
 version: '${project.version}'
-main: org.kerix.api.MinecraftAPI
+main: org.kerix.api.KaraAPI
 api-version: '1.20'
 author: NotKerix
+commands:
+  gethead:
+    description: A command to get a PlayerHead using it's Base64 ID

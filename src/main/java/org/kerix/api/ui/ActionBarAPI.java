@@ -8,7 +8,7 @@ import org.kerix.api.utils.Pair;
 
 import java.util.HashMap;
 
-import static org.kerix.api.MinecraftAPI.getINSTANCE;
+import static org.kerix.api.KaraAPI.getINSTANCE;
 
 public class ActionBarAPI {
 

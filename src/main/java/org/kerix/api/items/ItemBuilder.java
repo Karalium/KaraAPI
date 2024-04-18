@@ -12,18 +12,23 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
+import org.kerix.api.items.nbt.NBTBuilder;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class ItemBuilder {
+public class ItemBuilder extends ItemStack{
 
-    private final ItemStack item;
+
     private final ItemMeta meta;
 
-    public ItemBuilder(Material mat){
-        this.item = new ItemStack(mat);
-        this.meta = item.getItemMeta();
+    public ItemBuilder(Material type){
+
+        if (getData() != null) {
+            this.createData((Byte) null);
+        }
+        super.setType(type);
+        meta = super.getItemMeta();
     }
 
     public ItemBuilder lore(String @NotNull ... lore){
@@ -33,10 +38,14 @@ public class ItemBuilder {
             l.add(Component.text(s.replace("&" , "§")));
         }
         meta.lore(l);
+
+
+        super.setItemMeta(meta);
         return this;
     }
     public ItemBuilder displayName(@NotNull String name){
         meta.displayName(Component.text(name.replace("&" , "§")));
+        super.setItemMeta(meta);
         return this;
     }
     public ItemBuilder enchant(Object... enchantsAndLevels) {
@@ -45,48 +54,50 @@ public class ItemBuilder {
         }
 
         for (int i = 0; i < enchantsAndLevels.length; i += 2) {
-            if (!(enchantsAndLevels[i] instanceof Enchantment)) {
+            if (!(enchantsAndLevels[i] instanceof Enchantment enchantment)) {
                 throw new IllegalArgumentException("Expected Enchantment at index " + i + " of enchantsAndLevels.");
             }
             if (!(enchantsAndLevels[i + 1] instanceof Integer)) {
                 throw new IllegalArgumentException("Expected Integer at index " + (i + 1) + " of enchantsAndLevels.");
             }
 
-            Enchantment enchantment = (Enchantment) enchantsAndLevels[i];
             int level = (int) enchantsAndLevels[i + 1];
             meta.addEnchant(enchantment, level , true);
         }
+
+        super.setItemMeta(meta);
 
         return this;
     }
     public ItemBuilder customModelData(int model){
         meta.setCustomModelData(model);
+        super.setItemMeta(meta);
         return this;
     }
     public ItemBuilder flag(ItemFlag... flags){
         meta.addItemFlags(flags);
+        super.setItemMeta(meta);
+        return this;
+    }
+    public ItemBuilder nbt(String key , String data){
+        NBTBuilder nbt = new NBTBuilder(key , data , meta);
+        nbt.build();
+        super.setItemMeta(meta);
         return this;
     }
     public ItemBuilder attribute(Attribute attribute, double amount) {
-        AttributeModifier modifier = new AttributeModifier(UUID.randomUUID() , "GenericAttribute" , amount , AttributeModifier.Operation.ADD_NUMBER , getArmorType(item));
-        if(meta.getAttributeModifiers() == null || meta.getAttributeModifiers().isEmpty()) meta.setAttributeModifiers(getAttributes(item));
+        AttributeModifier modifier = new AttributeModifier(UUID.randomUUID() , "GenericAttribute" , amount , AttributeModifier.Operation.ADD_NUMBER , getArmorType(this));
+        if(meta.getAttributeModifiers() == null || meta.getAttributeModifiers().isEmpty()) meta.setAttributeModifiers(getAttributes(this));
         meta.addAttributeModifier(attribute, modifier);
+        super.setItemMeta(meta);
         return this;
     }
 
 
     public ItemBuilder amount(int amount){
-        item.setAmount(amount);
+        setAmount(amount);
+        super.setItemMeta(meta);
         return this;
-    }
-
-    public ItemStack getItem() {
-        return item;
-    }
-
-    public ItemStack build(){
-        item.setItemMeta(meta);
-        return item;
     }
 
     public static Multimap<Attribute, AttributeModifier> getAttributes(ItemStack itemstack) {
@@ -200,5 +211,9 @@ public class ItemBuilder {
         else if (material.name().toLowerCase().contains("boots")) equipmentSlot = EquipmentSlot.FEET;
         else equipmentSlot = EquipmentSlot.HAND;
         return equipmentSlot;
+    }
+
+    private void createData(byte data) {
+        super.setData(super.getType().getNewData(data));
     }
 }

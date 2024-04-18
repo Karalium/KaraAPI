@@ -6,14 +6,14 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
-import org.kerix.api.MinecraftAPI;
+import org.kerix.api.KaraAPI;
 import org.kerix.api.startapi.DebugMessageAPI;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static org.kerix.api.MinecraftAPI.getINSTANCE;
+import static org.kerix.api.KaraAPI.getINSTANCE;
 
 public abstract class ConfigManager {
 
@@ -22,7 +22,7 @@ public abstract class ConfigManager {
     public abstract void initBaseConfig();
     public ConfigManager(@NotNull JavaPlugin plugin , @NotNull String pathFile , @NotNull String nameFile , @NotNull String key) {
         this.plugin = plugin;
-        MinecraftAPI minecraftAPI = getINSTANCE();
+        KaraAPI minecraftAPI = getINSTANCE();
         this.debugMessageAPI = minecraftAPI.getDebugMessageAPI();
         if(!pathFile.isBlank()){
             if (!pathFile.endsWith("/")) pathFile += "/";
