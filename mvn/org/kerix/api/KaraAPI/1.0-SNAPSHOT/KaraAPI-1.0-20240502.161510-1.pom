@@ -62,7 +62,6 @@
           <id>minecraft-libraries</id>
           <url>https://libraries.minecraft.net/</url>
       </repository>
-
   </repositories>
 
   <dependencies>
@@ -70,7 +69,7 @@
           <groupId>io.papermc.paper</groupId>
           <artifactId>paper-api</artifactId>
           <version>1.20.4-R0.1-SNAPSHOT</version>
-          <scope>compile</scope>
+          <scope>provided</scope>
       </dependency>
       <dependency>
           <groupId>com.mojang</groupId>
@@ -87,9 +86,9 @@
 
     <distributionManagement>
         <repository>
-            <id>kara-api</id>
-            <name>Github Repo</name>
-            <url>file:///Karalium/KaraAPI/mvn</url>
+            <id>github</id>
+            <name>GitHub OraKerix Maven Repository</name>
+            <url>https://maven.pkg.github.com/OraKerix/KaraAPIMaven</url>
         </repository>
     </distributionManagement>
 

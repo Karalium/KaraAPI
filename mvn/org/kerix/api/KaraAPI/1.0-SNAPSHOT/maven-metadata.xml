@@ -3,21 +3,21 @@
   <groupId>org.kerix.api</groupId>
   <artifactId>KaraAPI</artifactId>
   <versioning>
-    <lastUpdated>20240501224811</lastUpdated>
+    <lastUpdated>20240502161510</lastUpdated>
     <snapshot>
-      <timestamp>20240501.224811</timestamp>
+      <timestamp>20240502.161510</timestamp>
       <buildNumber>1</buildNumber>
     </snapshot>
     <snapshotVersions>
       <snapshotVersion>
         <extension>jar</extension>
-        <value>1.0-20240501.224811-1</value>
-        <updated>20240501224811</updated>
+        <value>1.0-20240502.161510-1</value>
+        <updated>20240502161510</updated>
       </snapshotVersion>
       <snapshotVersion>
         <extension>pom</extension>
-        <value>1.0-20240501.224811-1</value>
-        <updated>20240501224811</updated>
+        <value>1.0-20240502.161510-1</value>
+        <updated>20240502161510</updated>
       </snapshotVersion>
     </snapshotVersions>
   </versioning>
