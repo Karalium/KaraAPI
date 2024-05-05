@@ -11,7 +11,6 @@ import org.kerix.api.startapi.StatutMessageList;
 
 public final class KaraAPI extends JavaPlugin {
 
-    private static DebugMessageAPI debugMessageAPI;
     private static volatile KaraAPI instance;
 
     public KaraAPI() {
@@ -21,22 +20,17 @@ public final class KaraAPI extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        instance = this;
-        debugMessageAPI = new DebugMessageAPI();
-        debugMessageAPI.StatutPlugin(StatutMessageList.ENABLE , getDescription() , getLogger());
-        ConfigManager.initFiles(this);
+        synchronized (KaraAPI.class){
+            instance = this;
+        }
+        DebugMessageAPI.StatutPlugin(StatutMessageList.ENABLE , this);
 
         Register.command("gethead" , new HeadGiveCommand() , this);
     }
 
     @Override
     public void onDisable() {
-        debugMessageAPI.StatutPlugin(StatutMessageList.DISABLE , getDescription() , getLogger());
-    }
-
-    public DebugMessageAPI getDebugMessageAPI() {
-        if(debugMessageAPI == null) return debugMessageAPI = new DebugMessageAPI();
-        return debugMessageAPI;
+        DebugMessageAPI.StatutPlugin(StatutMessageList.DISABLE , this);
     }
 
     public static synchronized KaraAPI getINSTANCE() {

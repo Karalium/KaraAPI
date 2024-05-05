@@ -36,6 +36,7 @@ public enum ConsoleColor {
     ConsoleColor(String ANSI) {
         this.color = ANSI;
     }
+
     @Override
     public String toString() {
         return color;

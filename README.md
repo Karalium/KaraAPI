@@ -1,4 +1,9 @@
 # KaraAPI
+<div align="center">
+  <a href="https://github.com/othneildrew/Best-README-Template">
+    <img src="src/main/resources/Smart&Simple.png" alt="Logo" width="200" height="200">
+  </a>
+</div>
 
 ## Introduction
 

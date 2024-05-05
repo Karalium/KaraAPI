@@ -10,7 +10,7 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.kerix.api.KaraAPI;
 
-
+@Deprecated
 public class NBTBuilder {
     private final String key;
     private final String data;
@@ -21,21 +21,20 @@ public class NBTBuilder {
         this.data = data;
         this.meta = meta;
     }
-
     public void build() {
         String[] args = key.toLowerCase().split("\\.");
         PersistentDataContainer container = meta.getPersistentDataContainer();
         PersistentDataContainer current = container.getAdapterContext().newPersistentDataContainer();
         PersistentDataContainer newcontainer = container.getAdapterContext().newPersistentDataContainer();
 
-        for (int i = args.length-1; i >=0 ; i--) {
-            if(i == args.length-1){
-                newcontainer.set(NamespacedKey.minecraft(args[i]) , PersistentDataType.STRING , data);
-            } else if(i>0) {
-                current.set(NamespacedKey.minecraft(args[i]) , PersistentDataType.TAG_CONTAINER , newcontainer);
+        for (int i = args.length - 1; i >= 0; i--) {
+            if (i == args.length - 1) {
+                newcontainer.set(NamespacedKey.minecraft(args[i]), PersistentDataType.STRING, data);
+            } else if (i > 0) {
+                current.set(NamespacedKey.minecraft(args[i]), PersistentDataType.TAG_CONTAINER, newcontainer);
                 newcontainer = current;
             } else {
-                container.set(NamespacedKey.minecraft(args[i]) , PersistentDataType.TAG_CONTAINER , current);
+                container.set(NamespacedKey.minecraft(args[i]), PersistentDataType.TAG_CONTAINER, current);
             }
         }
     }

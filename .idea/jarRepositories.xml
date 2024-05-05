@@ -22,6 +22,11 @@
       <option name="url" value="https://repo1.maven.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="paperweight" />
+      <option name="name" value="paperweight" />
+      <option name="url" value="https://repo.papermc.io/repository/maven-public/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="minecraft-libraries" />
       <option name="name" value="minecraft-libraries" />
       <option name="url" value="https://libraries.minecraft.net/" />
@@ -30,6 +35,11 @@
       <option name="id" value="papermc" />
       <option name="name" value="papermc" />
       <option name="url" value="https://repo.papermc.io/repository/maven-public/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="kara-api" />
+      <option name="name" value="kara-api" />
+      <option name="url" value="https://raw.githubusercontent.com/karalium/karaapi/" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="central" />

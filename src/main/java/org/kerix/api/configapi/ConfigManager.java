@@ -6,34 +6,33 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
-import org.kerix.api.KaraAPI;
 import org.kerix.api.startapi.DebugMessageAPI;
+import org.kerix.api.utils.ConvertList;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static org.kerix.api.KaraAPI.getINSTANCE;
-
+@SuppressWarnings("unused")
 public abstract class ConfigManager {
 
-    private final DebugMessageAPI debugMessageAPI;
-    private final JavaPlugin plugin;
-    public abstract void initBaseConfig();
-    public ConfigManager(@NotNull JavaPlugin plugin , @NotNull String pathFile , @NotNull String nameFile , @NotNull String key) {
+    private static final HashMap<String, ConfigManager> ConfigList = new HashMap<>();
+    private static boolean initFiles = false;
+
+
+    public ConfigManager(@NotNull JavaPlugin plugin, @NotNull String pathFile, @NotNull String nameFile, @NotNull String key) {
         this.plugin = plugin;
-        KaraAPI minecraftAPI = getINSTANCE();
-        this.debugMessageAPI = minecraftAPI.getDebugMessageAPI();
-        if(!pathFile.isBlank()){
+        if (!pathFile.isBlank()) {
             if (!pathFile.endsWith("/")) pathFile += "/";
-            if(!pathFile.startsWith("../")) pathFile = "../" + pathFile;
+            if (!pathFile.startsWith("../")) pathFile = "../" + pathFile;
+            pathFile = pathFile.replace(" ", "_");
         }
         if (!nameFile.endsWith(".yml")) nameFile += ".yml";
-        if(!key.endsWith(".")) key += ".";
+        if (!key.endsWith(".")) key += ".";
 
-        this.pathFile = pathFile;
-        this.nameFile = this.pathFile + nameFile;
-        this.file = new File(plugin.getDataFolder() , this.nameFile);
+        this.nameFile = pathFile + nameFile;
         this.key = key;
 
         createFile();
@@ -43,45 +42,49 @@ public abstract class ConfigManager {
         }
     }
 
-    private final String pathFile;
-    private static boolean initFiles = false;
+    private final JavaPlugin plugin;
     private final String nameFile;
-    private File file;
     private final String key;
+    private File file;
     private YamlConfiguration yml;
-    private static final HashMap<String , ConfigManager> list = new HashMap<>();
+    public abstract void initBaseConfig(YamlConfiguration yml);
 
-    public static void initFiles(JavaPlugin plugin) {
+    private static void initFiles(JavaPlugin plugin) {
         initFiles = true;
         new BukkitRunnable() {
             @Override
             public void run() {
-                list.values().forEach(cm ->{
-                    if(!cm.getFileExists()) {
-                        cm.initBaseConfig();
+                ConfigList.values().forEach(cm -> {
+                    if (!cm.getFileExists()) {
+                        cm.initBaseConfig(cm.getYml());
                         cm.saveConfig();
                     }
                 });
             }
-        }.runTaskTimer(plugin, 1 , 20L);
+        }.runTaskTimer(plugin, 1, 20L);
     }
 
-    public void createFile() {
+
+    private void createFile() {
         file = new File(plugin.getDataFolder(), nameFile);
-        if (list.get(nameFile) != null && list.get(nameFile).getFile().exists()) {
-            yml = YamlConfiguration.loadConfiguration(list.get(nameFile).getFile());
+        if (ConfigList.get(nameFile) != null && ConfigList.get(nameFile).getFile().exists()) {
+            yml = YamlConfiguration.loadConfiguration(ConfigList.get(nameFile).getFile());
         } else {
-            list.put(nameFile, this);
-            if(!file.exists()) {
+            if (!getFileExists()) {
+                ConfigList.put(nameFile, this);
+
                 yml = new YamlConfiguration();
-                initBaseConfig();
-            } else yml = YamlConfiguration.loadConfiguration(list.get(nameFile).getFile());
-            saveConfig();
-            debugMessageAPI.ConfigFiles(file , plugin.getLogger() , plugin);
+                yml.set(getKey(), "");
+                initBaseConfig(yml);
+                saveConfig();
+                DebugMessageAPI.configFiles(file, plugin.getLogger(), plugin);
+            } else {
+                yml = YamlConfiguration.loadConfiguration(file);
+            }
         }
     }
 
-    public YamlConfiguration getYml(){
+    public YamlConfiguration getYml() {
         return yml;
     }
 
@@ -97,86 +100,103 @@ public abstract class ConfigManager {
         return key;
     }
 
+    @SuppressWarnings("all")
     public boolean getFileExists() {
         return getFile().exists();
     }
 
     private ConfigurationSection getYamlSection() {
-        String key = getKey();
-        ConfigurationSection section = yml.getConfigurationSection(key);
-        if(!(section == null)) {
-            return section;
-        } else {
-            return yml.createSection(key.replace("." , ""));
-        }
+        loadConfig();
+        return yml.getConfigurationSection(getKey());
     }
 
-    public ConfigurationSection getYamlSection(@NotNull String path) {
-        ConfigurationSection section = getYamlSection().getConfigurationSection(path);
-        if (section != null) {
-            return section;
-        } else {
-            throw new NullPointerException("The Yaml section does not exist: " + path);
-        }
+    public Integer getInt(@NotNull String index) {
+        return getYamlSection().getInt(index);
     }
 
-    public Integer getYamlSectionInt(@NotNull String index) {
-        return Objects.requireNonNull(yml.getConfigurationSection(getKey())).getInt(index);
+    public double getDouble(@NotNull String index) {
+        return getYamlSection().getDouble(index);
     }
 
-    public double getYamlSectionDouble(@NotNull String index) {
-        return Objects.requireNonNull(yml.getConfigurationSection(getKey())).getDouble(index);
-    }
-    public String getYamlSectionString(@NotNull String index) {
-        return Objects.requireNonNull(yml.getConfigurationSection(getKey())).getString(index);
+    public String getString(@NotNull String index) {
+        return getYamlSection().getString(index);
     }
 
-    public List<?> getYamlSectionList(@NotNull String index) {
-        return Objects.requireNonNull(yml.getConfigurationSection(getKey())).getList(index);
+    public List<?> getList(@Nonnull String index) {
+        List<?> rawList = getYamlSection().getList(index);
+        return (rawList != null) ? ConvertList.type(getYamlSection().getList(index), getType(rawList)) : Collections.emptyList();
     }
 
-    public @NotNull Set<String> getYamlConfigurationSectionList(@NotNull String index) {
+    public @NotNull List<String> getConfigurationSection(@NotNull String index, boolean deep) {
         ConfigurationSection sectionList = this.getYamlSection().getConfigurationSection(index);
-        return (sectionList != null) ? sectionList.getKeys(false) : Collections.emptySet();
+        return (sectionList != null) ? new ArrayList<>(sectionList.getKeys(deep)) : Collections.emptyList();
+    }
+    @Deprecated
+    public void incrementInteger(@Nonnull String index, int value) {
+        int sectionValue = getInt(index);
+        sectionValue += value;
+
+        set(index, sectionValue);
     }
 
-    public void setYamlConfig(@NotNull String index, int value) {
-        int sectionValue ;
-        if (getYamlSectionInt(index) != null) {
-            sectionValue = getYamlSectionInt(index);
-            sectionValue += value;
-        } else return;
-        yml.set(getKey() + index, sectionValue);
-        saveConfig();
+    public void incrementDouble(@Nonnull String index, double value) {
+        double sectionValue = getDouble(index);
+
+        sectionValue += value;
+
+        set(index, sectionValue);
     }
 
-    public void setYamlConfig(@NotNull String index, double value) {
-        double sectionValue;
-        if (getYamlSection().get(index) instanceof Double) {
-            sectionValue = getYamlSectionDouble(index);
-            sectionValue += value;
-        } else {
-            return;
+    public void set(@Nonnull String index, @Nullable Object... objects) {
+        if(objects == null){
+            throw new NullPointerException("Cannot set to null");
         }
-        yml.set(getKey() + index, sectionValue);
-        saveConfig();
-    }
-    public void setYamlConfig(@NotNull String index, String value) {
-        List<String> convertList = new ArrayList<>();
-        if (value != null) {
-            if (value.contains(",")) {
-                String[] splitValuesArray = value.split(",");
-                convertList.addAll(Arrays.asList(splitValuesArray));
-                yml.set(getKey() + index, convertList);
-            } else yml.set(getKey() + index , value);
-        } else {
-            yml.set(getKey() + index, null);
+        if (objects.length == 1) {
+            Object object = objects[0];
+            if (object instanceof List<?> list) {
+                Class<?> type = getType(list);
+
+                List<?> convertedList = ConvertList.type(list, type);
+                getYamlSection().set(index, convertedList);
+            } else {
+                getYamlSection().set(index, object);
+            }
             saveConfig();
-            return;
-        }
+        } else {
+            List<?> list = ConvertList.array(objects);
 
+            Class<?> type = getType(list);
+
+            List<?> convertedList = ConvertList.type(list, type);
+            getYamlSection().set(index, convertedList);
+        }
+    }
+
+    public void addValueList(String index, Object... objects) {
+        List<?> valuelist = ConvertList.array(getList(index) , objects);
+
+        set(index , valuelist);
+    }
+
+    public void removeValueList(String index, Object... objects) {
+        List<Object> convertList = ConvertList.array(objects);
+        List<?> originalList = getList(index);
+
+        List<?> valuelist = (originalList != null) ? originalList.stream()
+                .filter(object -> !convertList.contains(object))
+                .toList() : null;
+
+        set(index , valuelist);
+    }
+
+
+    public void remove(@Nonnull String index) {
+        loadConfig();
+
+        getYamlSection().set(index, null);
         saveConfig();
     }
+
     public void saveConfig() {
         try {
             yml.save(file);
@@ -188,9 +208,28 @@ public abstract class ConfigManager {
 
     public void loadConfig() {
         try {
+
             yml.load(file);
         } catch (IOException | InvalidConfigurationException e) {
             throw new RuntimeException("Error loading config file", e);
+        }
+    }
+    private static <T> Class<?> getType(List<T> list) {
+        if (list.isEmpty()) {
+            return Object.class;
+        } else {
+            Class<?> elementType = null;
+            for (T item : list) {
+                if (item != null) {
+                    Class<?> itemClass = item.getClass();
+                    if (elementType == null) {
+                        elementType = itemClass;
+                    } else if (!elementType.equals(itemClass)) {
+                        return Object.class;
+                    }
+                }
+            }
+            return elementType != null ? elementType : Object.class;
         }
     }
 }

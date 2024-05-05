@@ -10,6 +10,7 @@ public class Pair<A, B> {
         this.first = first;
         this.second = second;
     }
+
     public A getFirst() {
         return first;
     }
@@ -18,10 +19,11 @@ public class Pair<A, B> {
         return second;
     }
 
-    public void setSecond(B b){
+    public void setSecond(B b) {
         second = b;
     }
-    public void setFirst(A a){
+
+    public void setFirst(A a) {
         first = a;
     }
 }

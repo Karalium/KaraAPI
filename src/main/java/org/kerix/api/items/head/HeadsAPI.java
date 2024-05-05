@@ -16,7 +16,7 @@ import java.util.UUID;
 
 public class HeadsAPI {
 
-    public static ItemStack  getHead(String base64) {
+    public static ItemStack getHead(String base64) {
         return setSkinViaBase64(base64);
     }
 
@@ -36,11 +36,10 @@ public class HeadsAPI {
             playerHead.setItemMeta(meta);
             return playerHead;
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
-            
+
         }
         return null;
     }
-
 
 
 }

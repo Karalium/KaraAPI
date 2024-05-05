@@ -13,7 +13,7 @@ import static org.kerix.api.KaraAPI.getINSTANCE;
 public class ActionBarAPI {
 
     private static final HashMap<Player, CountdownInfo> countdowns = new HashMap<>();
-    private static final HashMap<Player , AnimationState> playersWithAnimation = new HashMap<>();
+    private static final HashMap<Player, AnimationState> playersWithAnimation = new HashMap<>();
     private static boolean sentCountdowns = false;
     private static boolean sentAnimations = false;
 
@@ -28,7 +28,7 @@ public class ActionBarAPI {
     }
 
     public static void send(Player player, int times, String @NotNull ... args) {
-        playersWithAnimation.put(player , new AnimationState(times , args));
+        playersWithAnimation.put(player, new AnimationState(times, args));
 
         if (!sentAnimations) sendAnimations();
     }
@@ -67,6 +67,7 @@ public class ActionBarAPI {
             }
         }.runTaskTimer(getINSTANCE(), 0, 5);
     }
+
     private static void sendCountdowns() {
         sentCountdowns = true;
         new BukkitRunnable() {
@@ -112,13 +113,14 @@ public class ActionBarAPI {
             }
         }.runTaskTimer(getINSTANCE(), 0, 20);
     }
+
     private static class AnimationState {
         private int index = 0;
         private int stop = 0;
         private final String[] animation;
         private final int times;
 
-        public AnimationState(int times , String[] animation){
+        public AnimationState(int times, String[] animation) {
             this.animation = animation;
             this.times = times;
         }
@@ -140,13 +142,15 @@ public class ActionBarAPI {
             this.stop = stop;
         }
 
-        public int getTimes(){
+        public int getTimes() {
             return times;
         }
-        public String[] getAnimation(){
+
+        public String[] getAnimation() {
             return animation;
         }
     }
+
     private static class CountdownInfo {
         private final Pair<String, Pair<Integer, Integer>> message;
         private boolean countDownDetermined;

@@ -21,6 +21,7 @@ public class ScoreBoardBuilder {
     public ScoreBoardBuilder setTitle(String title){
         objective.displayName(buildString(title));
         this.title = title;
+
         return this;
     }
     public ScoreBoardBuilder setLines(String... args) {

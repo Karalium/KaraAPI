@@ -11,8 +11,8 @@ public class Register {
 
     private static final KaraAPI minecraftAPI;
 
-    static{
-        minecraftAPI =  KaraAPI.getINSTANCE();
+    static {
+        minecraftAPI = KaraAPI.getINSTANCE();
     }
 
     /**
@@ -32,7 +32,7 @@ public class Register {
      * @param commandName Name of the command.
      * @param executor    Command executor.
      */
-    public static void command(String commandName, CommandExecutor executor , JavaPlugin plugin) {
+    public static void command(String commandName, CommandExecutor executor, JavaPlugin plugin) {
         PluginCommand command = plugin.getCommand(commandName);
         if (command != null) {
             command.setExecutor(executor);

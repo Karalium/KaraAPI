@@ -7,6 +7,7 @@ import java.util.Base64;
 
 public class Token {
     private final String id;
+
     public Token(String Type) {
         this.id = new TokenBuilder(Base64.getEncoder().encodeToString(Type.getBytes())).generateId();
     }
@@ -40,22 +41,24 @@ class TokenBuilder {
     }
 
     public String generateId() {
-        long timestamp = System.currentTimeMillis();
-        double sqrtTimestamp = Math.sqrt(timestamp);
-        Base64.Encoder encoder = Base64.getEncoder();
+        long t = System.currentTimeMillis();
+        double st = Math.sqrt(t);
+        Base64.Encoder e = Base64.getEncoder();
 
-        SecureRandom secureRandom = new SecureRandom();
-        secureRandom.setSeed(timestamp + secureRandom.nextLong());
+        SecureRandom r = new SecureRandom();
+        r.setSeed(t + r.nextLong());
 
-        int randomIndex = secureRandom.nextInt(10);
-        double n = Character.getNumericValue(String.valueOf(timestamp).charAt(randomIndex)) /(randomIndex/2.3);
+        int ri = r.nextInt(10);
+        double srt = Math.pow(ri, st / 4) * 3;
+        double n = Character.getNumericValue(String.valueOf(t).charAt(ri)) / (ri / 2.3) * srt;
 
-        String sqnTimeStamp = Base64.getEncoder().encodeToString(String.valueOf(Math.floor(sqrtTimestamp * Math.pow(10, n))).getBytes());
+        String snt = Base64.getEncoder().encodeToString(String.valueOf(Math.floor(st * Math.pow(10, n))).getBytes());
 
-        String randomString = encoder.encodeToString(generateRandomString().getBytes());
+        String randomString = e.encodeToString(generateRandomString().getBytes());
 
-        return encoder.encodeToString((type + sqnTimeStamp + randomString).getBytes());
+        return e.encodeToString((type + snt + randomString).getBytes());
     }
+
     private String generateRandomString() {
         int length = 10;
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

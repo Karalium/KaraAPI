@@ -13,7 +13,7 @@ import org.kerix.api.items.nbt.NBTBuilder;
 
 import java.util.UUID;
 
-public class ArmorBuilder extends ItemBuilder{
+public class ArmorBuilder extends ItemBuilder {
 
 
     public ArmorBuilder(Material mat) {
@@ -33,33 +33,37 @@ public class ArmorBuilder extends ItemBuilder{
     }
 
     @Override
-    public ItemBuilder customModelData(int model){
+    public ItemBuilder customModelData(int model) {
         super.customModelData(model);
-        return this;
-    }
-    @Override
-    public ItemBuilder flag(ItemFlag... flags){
-        super.flag(flags);
-        return this;
-    }
-    @Override
-    public ItemBuilder nbt(String key , String data){
-        super.nbt(key, data);
-        return this;
-    }
-    @Override
-    public ItemBuilder attribute(Attribute attribute, double amount) {
-        super.attribute(attribute , amount);
         return this;
     }
 
     @Override
-    public ItemBuilder amount(int amount){
+    public ItemBuilder flag(ItemFlag... flags) {
+        super.flag(flags);
+        return this;
+    }
+
+    @Override
+    public ItemBuilder nbt(String key, String data) {
+        super.nbt(key, data);
+        return this;
+    }
+
+    @Override
+    public ItemBuilder attribute(Attribute attribute, double amount) {
+        super.attribute(attribute, amount);
+        return this;
+    }
+
+    @Override
+    public ItemBuilder amount(int amount) {
         super.amount(amount);
         return this;
     }
-    public ArmorBuilder leatherColor(Color color){
-        if(!getType().name().toLowerCase().contains("leather") && getType()!=Material.LEATHER) return this;
+
+    public ArmorBuilder leatherColor(Color color) {
+        if (!getType().name().toLowerCase().contains("leather") && getType() != Material.LEATHER) return this;
 
         LeatherArmorMeta armorMeta = (LeatherArmorMeta) getItemMeta();
         armorMeta.setColor(color);
