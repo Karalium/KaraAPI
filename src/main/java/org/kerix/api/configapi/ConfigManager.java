@@ -214,6 +214,7 @@ public abstract class ConfigManager {
             throw new RuntimeException("Error loading config file", e);
         }
     }
+
     private static <T> Class<?> getType(List<T> list) {
         if (list.isEmpty()) {
             return Object.class;
