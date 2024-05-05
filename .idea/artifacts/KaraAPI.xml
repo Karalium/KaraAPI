@@ -1,9 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="KaraAPI">
-    <output-path>$PROJECT_DIR$/../Server/plugins</output-path>
-    <root id="archive" name="KaraAPI.jar">
-      <element id="library" level="project" name="Maven: org.kerix.api:consolecolor:1.0-SNAPSHOT" />
-      <element id="module-output" name="KaraAPI" />
-    </root>
-  </artifact>
-</component>
