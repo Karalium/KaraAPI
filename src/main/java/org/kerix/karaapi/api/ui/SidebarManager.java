@@ -1,0 +1,43 @@
+package org.kerix.karaapi.api.ui;
+
+import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public final class SidebarManager {
+
+    private final Map<UUID, Sidebar> sidebars = new HashMap<>();
+
+    public Sidebar getOrCreate(Player player, Component title) {
+        Sidebar sidebar = sidebars.get(player.getUniqueId());
+
+        if (sidebar != null) {
+            sidebar.title(title);
+            return sidebar;
+        }
+
+        sidebar = new Sidebar(player, title);
+        sidebars.put(player.getUniqueId(), sidebar);
+
+        return sidebar;
+    }
+
+    public void remove(Player player) {
+        Sidebar sidebar = sidebars.remove(player.getUniqueId());
+
+        if (sidebar != null) {
+            sidebar.hide();
+        }
+    }
+
+    public void clearAll() {
+        for (Sidebar sidebar : sidebars.values()) {
+            sidebar.hide();
+        }
+
+        sidebars.clear();
+    }
+}

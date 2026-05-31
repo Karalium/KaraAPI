@@ -1,0 +1,52 @@
+package org.kerix.karaapi.api.bootstrap;
+
+import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.config.ConfigService;
+import org.kerix.karaapi.api.item.custom.CustomItemService;
+import org.kerix.karaapi.api.menu.MenuService;
+import org.kerix.karaapi.api.message.MessageService;
+import org.kerix.karaapi.api.placeholder.PlaceholderService;
+import org.kerix.karaapi.api.profile.ProfileService;
+import org.kerix.karaapi.api.region.RegionService;
+import org.kerix.karaapi.api.registry.RegistryService;
+import org.kerix.karaapi.api.requirement.RequirementService;
+import org.kerix.karaapi.api.startup.CommandRegistrar;
+import org.kerix.karaapi.api.startup.ListenerRegistrar;
+import org.kerix.karaapi.api.startup.StartupAnnouncer;
+import org.kerix.karaapi.api.storage.StorageService;
+import org.kerix.karaapi.api.task.TaskService;
+import org.kerix.karaapi.api.tick.TickOrchestrator;
+import org.kerix.karaapi.api.service.ServiceContainer;
+import org.kerix.karaapi.api.ui.UiService;
+
+public record BootstrapContext(
+        JavaPlugin apiPlugin,
+        JavaPlugin hostPlugin,
+
+        ServiceContainer services,
+
+        TickOrchestrator ticks,
+        CommandRegistrar commands,
+        ListenerRegistrar listeners,
+        StartupAnnouncer announcer,
+
+        ConfigService configs,
+        TaskService tasks,
+        UiService ui,
+        MenuService menus,
+
+        PlaceholderService placeholders,
+        MessageService messages,
+        RegistryService registries,
+        StorageService storage,
+
+        ProfileService profiles,
+        CustomItemService customItems,
+        RequirementService requirements,
+        RegionService regions
+) {
+
+    public <T> T service(Class<T> type) {
+        return services.get(type);
+    }
+}
