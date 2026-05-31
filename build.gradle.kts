@@ -1,5 +1,6 @@
 plugins {
     java
+    `maven-publish`
 
     // Makes a fat/shaded jar if you add external libraries.
     id("com.gradleup.shadow") version "9.4.2"
@@ -71,4 +72,16 @@ tasks.build {
 
 tasks.runServer {
     minecraftVersion(minecraftVersion)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+
+            groupId = "org.kerix"
+            artifactId = "karaapi"
+            version = project.version.toString()
+        }
+    }
 }
