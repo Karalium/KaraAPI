@@ -354,7 +354,7 @@
           <span class="badge">Java 21</span>
           <span class="badge">Adventure Components</span>
           <span class="badge">PlaceholderAPI Softdepend</span>
-          <span class="badge">Non-Folia Scheduler</span>
+          <span class="badge">Folia Scheduler Adapter</span>
         </div>
       </div>
     </header>
@@ -451,6 +451,15 @@
         id="toc-requirement-api">Requirement API</a></li>
         <li><a href="#region-api" id="toc-region-api">Region
         API</a></li>
+        <li><a href="#event-bus" id="toc-event-bus">Event Bus</a></li>
+        <li><a href="#typed-command-arguments"
+        id="toc-typed-command-arguments">Typed Command Arguments</a></li>
+        <li><a href="#effect-api" id="toc-effect-api">Effect API</a></li>
+        <li><a href="#folia-scheduler-adapter"
+        id="toc-folia-scheduler-adapter">Folia Scheduler Adapter</a></li>
+        <li><a href="#recipe-api" id="toc-recipe-api">Recipe API</a></li>
+        <li><a href="#runtime-binding-updates"
+        id="toc-runtime-binding-updates">Runtime Binding Updates</a></li>
         <li><a href="#listener-registration"
         id="toc-listener-registration">Listener Registration</a></li>
         <li><a href="#startup-messages"
@@ -546,9 +555,10 @@ Non-Folia servers</code></pre>
         uses modern Paper/Adventure concepts such as
         <code>Component</code>-based UI, item meta components, and
         modern scheduling wrappers.</p>
-        <p>Folia is not officially supported by the current task
-        scheduler implementation. A Folia scheduler adapter can be added
-        later behind the <code>paper.scheduler</code> package.</p>
+        <p>Folia support is available through KaraAPI's scheduler abstraction.
+        The regular <code>TaskService</code> is still intended for normal Paper
+        scheduling, while <code>KaraScheduler</code> provides Folia-aware
+        global, region, entity, and async scheduling.</p>
         <hr />
         <h2 id="package-layout">Package Layout</h2>
         <pre class="text"><code>org.kerix.karaapi
@@ -563,6 +573,7 @@ Non-Folia servers</code></pre>
 │   ├── startup
 │   ├── tick
 │   ├── task
+│   ├── scheduler
 │   ├── config
 │   ├── message
 │   ├── placeholder
@@ -575,6 +586,9 @@ Non-Folia servers</code></pre>
 │   ├── color
 │   ├── requirement
 │   ├── region
+│   ├── event
+│   ├── effect
+│   ├── recipe
 │   └── logic
 │
 ├── runtime
@@ -588,6 +602,7 @@ Non-Folia servers</code></pre>
 │   ├── inventory
 │   ├── item
 │   ├── placeholder
+│   ├── recipe
 │   ├── scoreboard
 │   └── text
 │
@@ -757,7 +772,12 @@ root     = KaraAPI&#39;s own plugin main class</code></pre>
 <span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">profiles</span><span class="op">();</span></span>
 <span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">customItems</span><span class="op">();</span></span>
 <span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">requirements</span><span class="op">();</span></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">regions</span><span class="op">();</span></span></code></pre></div>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">regions</span><span class="op">();</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">events</span><span class="op">();</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">scheduler</span><span class="op">();</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">effects</span><span class="op">();</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">recipes</span><span class="op">();</span></span></code></pre></div>
         <p>You can also retrieve services through the service
         container:</p>
         <div class="sourceCode" id="cb14"><pre
@@ -1532,6 +1552,219 @@ internal.debug.DebugTimer</code></pre>
 <span id="cb92-9"><a href="#cb92-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> <span class="fu">RegionModule</span><span class="op">()</span></span>
 <span id="cb92-10"><a href="#cb92-10" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
         <hr />
+        
+        <hr />
+        <h2 id="event-bus">Event Bus</h2>
+        <p>The Event Bus is for internal KaraAPI or host-plugin events that
+        do not need to be Bukkit events.</p>
+        <p>It is useful for decoupling systems such as profiles, abilities,
+        custom items, menus, storage, and gameplay logic.</p>
+        <div class="sourceCode" id="cb-event-1"><pre
+        class="sourceCode java"><code class="sourceCode java">public record ProfileLoadedEvent(Player player, PlayerData data) {
+}</code></pre></div>
+        <div class="sourceCode" id="cb-event-2"><pre
+        class="sourceCode java"><code class="sourceCode java">context.events().subscribe(ProfileLoadedEvent.class, event -> {
+    event.player().sendMessage("Profile loaded.");
+});
+
+context.events().publish(new ProfileLoadedEvent(player, data));</code></pre></div>
+        <h3 id="cancellable-event-bus-events">Cancellable Event Bus Events</h3>
+        <div class="sourceCode" id="cb-event-3"><pre
+        class="sourceCode java"><code class="sourceCode java">public final class AbilityUseEvent implements CancellableKaraEvent {
+
+    private boolean cancelled;
+
+    @Override
+    public boolean cancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void cancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+}</code></pre></div>
+
+        <hr />
+        <h2 id="typed-command-arguments">Typed Command Arguments</h2>
+        <p>Typed command arguments let you parse command input into real
+        Java/Bukkit types such as players, worlds, materials, numbers,
+        booleans, and enums.</p>
+        <div class="sourceCode" id="cb-typed-1"><pre
+        class="sourceCode java"><code class="sourceCode java">ArgumentSchema giveArgs = ArgumentSchema.create()
+        .required("target", Arguments.player())
+        .required("amount", Arguments.integer());
+
+context.commands().register(
+        KaraCommands.command("givecoins")
+                .playerOnly()
+                .executes(ctx -> {
+                    ParsedArguments args = ctx.parse(giveArgs);
+
+                    Player target = args.get("target");
+                    int amount = args.integer("amount");
+
+                    target.sendMessage("You received " + amount + " coins.");
+                    return CommandResult.success();
+                })
+                .build()
+);</code></pre></div>
+        <p>Built-in argument types:</p>
+        <div class="sourceCode" id="cb-typed-2"><pre
+        class="sourceCode text"><code class="sourceCode text">Arguments.string()
+Arguments.integer()
+Arguments.longNumber()
+Arguments.decimal()
+Arguments.bool()
+Arguments.player()
+Arguments.world()
+Arguments.material()
+Arguments.enumType(MyEnum.class)</code></pre></div>
+
+        <hr />
+        <h2 id="effect-api">Effect API</h2>
+        <p>The Effect API lets you create reusable visual/audio feedback
+        such as sounds, particles, messages, action bars, titles, and
+        composite effects.</p>
+        <div class="sourceCode" id="cb-effect-1"><pre
+        class="sourceCode java"><code class="sourceCode java">context.effects().play(
+        player,
+        Effects.all(
+                Effects.sound(Sound.ENTITY_PLAYER_LEVELUP),
+                Effects.particle(Particle.HAPPY_VILLAGER),
+                Effects.actionBar(KaraUI.gradient("Level Up!", "#00ffaa", "#ffff00"))
+        )
+);</code></pre></div>
+        <p>You can also play effects to multiple viewers at a location:</p>
+        <div class="sourceCode" id="cb-effect-2"><pre
+        class="sourceCode java"><code class="sourceCode java">context.effects().play(
+        location,
+        location.getWorld().getPlayers(),
+        Effects.particle(Particle.END_ROD, 40, 0.4, 0.8, 0.4, 0.02)
+);</code></pre></div>
+
+        <hr />
+        <h2 id="folia-scheduler-adapter">Folia Scheduler Adapter</h2>
+        <p><code>KaraScheduler</code> abstracts scheduling so KaraAPI can
+        use normal Bukkit scheduling on Paper and Folia schedulers on
+        Folia servers.</p>
+        <div class="sourceCode" id="cb-folia-1"><pre
+        class="sourceCode java"><code class="sourceCode java">context.scheduler().sync(() -> {
+    // global sync work
+});
+
+context.scheduler().at(player.getLocation(), () -> {
+    // location/region-owned work on Folia
+});
+
+context.scheduler().entity(player, () -> {
+    // entity-owned work on Folia
+});
+
+context.scheduler().async(() -> {
+    // async work
+});</code></pre></div>
+        <blockquote>
+        <p>On Folia, entity-owned work should use entity scheduling, and
+        location/region work should use region/location scheduling. Do not
+        treat Folia like normal Paper.</p>
+        </blockquote>
+
+        <hr />
+        <h2 id="recipe-api">Recipe API</h2>
+        <p>The Recipe API registers keyed recipes using
+        <code>NamespacedKey</code>. Recipes can be registered, removed, and
+        discovered for players.</p>
+        <h3 id="shaped-recipe">Shaped Recipe</h3>
+        <div class="sourceCode" id="cb-recipe-1"><pre
+        class="sourceCode java"><code class="sourceCode java">ItemStack result = ItemBuilder.of(Material.DIAMOND)
+        .name(KaraUI.gradient("Compressed Diamond", "#00ffff", "#ff00ff"))
+        .build();
+
+KaraRecipe recipe = ShapedRecipeBuilder.create(
+                RecipeKeys.of(context.hostPlugin(), "compressed_diamond"),
+                result
+        )
+        .shape("DDD", "DDD", "DDD")
+        .ingredient('D', Material.DIAMOND);
+
+context.recipes().register(recipe);</code></pre></div>
+        <h3 id="shapeless-recipe">Shapeless Recipe</h3>
+        <div class="sourceCode" id="cb-recipe-2"><pre
+        class="sourceCode java"><code class="sourceCode java">KaraRecipe recipe = ShapelessRecipeBuilder.create(
+                RecipeKeys.of(context.hostPlugin(), "magic_dust"),
+                ItemBuilder.of(Material.GLOWSTONE_DUST)
+                        .name(KaraUI.gradient("Magic Dust", "#ffaa00", "#ffff00"))
+                        .build()
+        )
+        .ingredient(Material.REDSTONE)
+        .ingredient(Material.GLOWSTONE_DUST);
+
+context.recipes().register(recipe);</code></pre></div>
+        <h3 id="custom-item-recipe">Custom Item Recipe</h3>
+        <div class="sourceCode" id="cb-recipe-3"><pre
+        class="sourceCode java"><code class="sourceCode java">ItemStack magicShard = context.customItems().create("magic_shard");
+
+KaraRecipe magicSwordRecipe = ShapedRecipeBuilder.create(
+                RecipeKeys.of(context.hostPlugin(), "magic_sword"),
+                context.customItems().create("magic_sword")
+        )
+        .shape(" S ", " S ", " B ")
+        .exact('S', magicShard)
+        .ingredient('B', Material.BLAZE_ROD);
+
+context.recipes().register(magicSwordRecipe);</code></pre></div>
+        <h3 id="recipe-discovery">Recipe Discovery</h3>
+        <div class="sourceCode" id="cb-recipe-4"><pre
+        class="sourceCode java"><code class="sourceCode java">context.recipes().discoverAll(player);</code></pre></div>
+
+        <hr />
+        <h2 id="runtime-binding-updates">Runtime Binding Updates</h2>
+        <p>After adding Event Bus, typed command arguments, Effect API,
+        Folia scheduler adapter, and Recipe API, your runtime should expose
+        the following services.</p>
+        <p>Add these fields to <code>PluginKernel</code>:</p>
+        <div class="sourceCode" id="cb-runtime-1"><pre
+        class="sourceCode java"><code class="sourceCode java">private final EventBus events;
+private final KaraScheduler scheduler;
+private final EffectService effects;
+private final RecipeService recipes;</code></pre></div>
+        <p>Initialize them:</p>
+        <div class="sourceCode" id="cb-runtime-2"><pre
+        class="sourceCode java"><code class="sourceCode java">this.events = new EventBus();
+this.scheduler = KaraSchedulers.create(hostPlugin);
+this.effects = new EffectService();
+this.recipes = new RecipeService(hostPlugin);</code></pre></div>
+        <p>Bind them:</p>
+        <div class="sourceCode" id="cb-runtime-3"><pre
+        class="sourceCode java"><code class="sourceCode java">services.bind(EventBus.class, events);
+services.bind(KaraScheduler.class, scheduler);
+services.bind(EffectService.class, effects);
+services.bind(RecipeService.class, recipes);</code></pre></div>
+        <p>Add them to <code>BootstrapContext</code>:</p>
+        <div class="sourceCode" id="cb-runtime-4"><pre
+        class="sourceCode java"><code class="sourceCode java">EventBus events,
+KaraScheduler scheduler,
+EffectService effects,
+RecipeService recipes</code></pre></div>
+        <p>Add getters to <code>PluginHandle</code>:</p>
+        <div class="sourceCode" id="cb-runtime-5"><pre
+        class="sourceCode java"><code class="sourceCode java">public EventBus events() {
+    return context.events();
+}
+
+public KaraScheduler scheduler() {
+    return context.scheduler();
+}
+
+public EffectService effects() {
+    return context.effects();
+}
+
+public RecipeService recipes() {
+    return context.recipes();
+}</code></pre></div>
+
         <h2 id="best-practices">Best Practices</h2>
         <h3 id="use-servicecontainer-for-services">Use
         <code>ServiceContainer</code> for services</h3>

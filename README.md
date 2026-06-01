@@ -72,6 +72,10 @@ storage                 generic repository pattern and YAML storage
 profile                 profile caches backed by storage repositories
 requirement             reusable permission/world/predicate requirements
 region                  cuboid and sphere regions
+EventBus                internal KaraAPI/plugin events
+Typed arguments         cleaner command parsing
+KaraScheduler           Paper/Folia-safe scheduling abstraction
+RecipeService           keyed recipe registration/discovery/removal
 color                   hex colors and gradients
 logic                   Result, Try, Lazy, Cooldowns, StateMachine, etc.
 paper                   Bukkit/Paper adapter layer
@@ -110,6 +114,9 @@ org.kerix.karaapi
 │   ├── region
 │   ├── ui
 │   ├── color
+│   ├── recipe
+│   ├── scheduler
+│   ├── event
 │   └── logic
 │
 ├── runtime

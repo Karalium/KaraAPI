@@ -3,6 +3,8 @@ package org.kerix.karaapi.api.command;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.kerix.karaapi.api.command.argument.ArgumentSchema;
+import org.kerix.karaapi.api.command.argument.ParsedArguments;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -90,5 +92,8 @@ public final class CommandContext {
 
     public String remainingInput() {
         return String.join(" ", args());
+    }
+    public ParsedArguments parse(ArgumentSchema schema) {
+        return schema.parse(this);
     }
 }

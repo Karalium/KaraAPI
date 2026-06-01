@@ -2,14 +2,17 @@ package org.kerix.karaapi.api;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.bootstrap.BootstrapContext;
+import org.kerix.karaapi.api.event.EventBus;
 import org.kerix.karaapi.api.item.custom.CustomItemService;
 import org.kerix.karaapi.api.menu.MenuService;
 import org.kerix.karaapi.api.message.MessageService;
 import org.kerix.karaapi.api.placeholder.PlaceholderService;
 import org.kerix.karaapi.api.profile.ProfileService;
+import org.kerix.karaapi.api.recipe.RecipeService;
 import org.kerix.karaapi.api.region.RegionService;
 import org.kerix.karaapi.api.registry.RegistryService;
 import org.kerix.karaapi.api.requirement.RequirementService;
+import org.kerix.karaapi.api.scheduler.KaraScheduler;
 import org.kerix.karaapi.api.service.ServiceContainer;
 import org.kerix.karaapi.api.startup.CommandRegistrar;
 import org.kerix.karaapi.api.startup.ListenerRegistrar;
@@ -117,6 +120,18 @@ public final class PluginHandle {
 
     public RegionService regions() {
         return context.regions();
+    }
+
+    public EventBus events() {
+        return context.events();
+    }
+
+    public KaraScheduler scheduler() {
+        return context.scheduler();
+    }
+
+    public RecipeService recipes() {
+        return context.recipes();
     }
 
     public boolean isShutdown() {

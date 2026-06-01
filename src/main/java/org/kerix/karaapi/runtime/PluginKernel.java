@@ -4,14 +4,18 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.bootstrap.BootstrapContext;
 import org.kerix.karaapi.api.bootstrap.PluginModule;
 import org.kerix.karaapi.api.config.ConfigService;
+import org.kerix.karaapi.api.event.EventBus;
 import org.kerix.karaapi.api.item.custom.CustomItemService;
 import org.kerix.karaapi.api.menu.MenuService;
 import org.kerix.karaapi.api.message.MessageService;
 import org.kerix.karaapi.api.placeholder.PlaceholderService;
 import org.kerix.karaapi.api.profile.ProfileService;
+import org.kerix.karaapi.api.recipe.RecipeService;
 import org.kerix.karaapi.api.region.RegionService;
 import org.kerix.karaapi.api.registry.RegistryService;
 import org.kerix.karaapi.api.requirement.RequirementService;
+import org.kerix.karaapi.api.scheduler.KaraScheduler;
+import org.kerix.karaapi.api.scheduler.KaraSchedulers;
 import org.kerix.karaapi.api.service.ServiceContainer;
 import org.kerix.karaapi.api.startup.CommandRegistrar;
 import org.kerix.karaapi.api.startup.ListenerRegistrar;
@@ -53,6 +57,10 @@ public final class PluginKernel {
     private final RequirementService requirements;
     private final RegionService regions;
 
+    private final EventBus events;
+    private final KaraScheduler scheduler;
+    private final RecipeService recipes;
+
     private final BootstrapContext context;
 
     private volatile boolean booted;
@@ -87,6 +95,10 @@ public final class PluginKernel {
         this.requirements = new RequirementService();
         this.regions = new RegionService();
 
+        this.events = new EventBus();
+        this.scheduler = KaraSchedulers.create(hostPlugin);
+        this.recipes = new RecipeService(hostPlugin);
+
         this.context = new BootstrapContext(
                 apiPlugin,
                 hostPlugin,
@@ -111,7 +123,11 @@ public final class PluginKernel {
                 profiles,
                 customItems,
                 requirements,
-                regions
+                regions,
+
+                events,
+                scheduler,
+                recipes
         );
 
         bindCoreServices();
@@ -135,6 +151,10 @@ public final class PluginKernel {
         services.bind(CustomItemService.class, customItems);
         services.bind(RequirementService.class, requirements);
         services.bind(RegionService.class, regions);
+
+        services.bind(EventBus.class, events);
+        services.bind(KaraScheduler.class, scheduler);
+        services.bind(RecipeService.class, recipes);
 
         services.bind(StartupProfile.class, profile);
         services.bind(StartupAnnouncer.class, announcer);
