@@ -1,0 +1,11 @@
+name: KaraAPI
+version: '${version}'
+main: org.kerix.karaapi.KaraAPIPlugin
+api-version: '1.21'
+authors:
+  - Kerix
+description: Core API library for Kara plugins.
+load: STARTUP
+
+softdepend:
+  - PlaceholderAPI

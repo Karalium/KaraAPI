@@ -1,0 +1,1904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="KaraAPI documentation for Paper plugin development." />
+  <title>KaraAPI Documentation</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-soft: #1e293b;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #334155;
+      --accent: #22d3ee;
+      --accent-2: #a78bfa;
+      --code-bg: #020617;
+      --link: #67e8f9;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --red: #f87171;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(34, 211, 238, 0.16), transparent 32rem),
+        radial-gradient(circle at top right, rgba(167, 139, 250, 0.16), transparent 28rem),
+        var(--bg);
+      line-height: 1.65;
+    }
+
+    .page {
+      width: min(1240px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .hero {
+      padding: 44px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.92), rgba(30, 41, 59, 0.82));
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -120px auto;
+      width: 320px;
+      height: 320px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.28), rgba(167, 139, 250, 0.22));
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 850px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      border-radius: 999px;
+      color: var(--accent);
+      background: rgba(34, 211, 238, 0.08);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(2.3rem, 5vw, 4.6rem);
+      line-height: 1;
+      letter-spacing: -0.06em;
+      background: linear-gradient(135deg, #f8fafc, #67e8f9, #c4b5fd);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .badge {
+      padding: 7px 11px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      gap: 28px;
+      margin-top: 28px;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 20px;
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 22px;
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(14px);
+      padding: 18px;
+    }
+
+    .sidebar-title {
+      margin: 0 0 12px;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .sidebar ul {
+      margin: 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .sidebar li {
+      margin: 2px 0;
+    }
+
+    .sidebar a {
+      display: block;
+      padding: 7px 9px;
+      border-radius: 10px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.93rem;
+    }
+
+    .sidebar a:hover {
+      color: var(--text);
+      background: rgba(34, 211, 238, 0.09);
+    }
+
+    .content {
+      min-width: 0;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 22px;
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(14px);
+      padding: 34px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    }
+
+    .content h1 {
+      display: none;
+    }
+
+    .content h2 {
+      margin-top: 42px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+      color: #f8fafc;
+      font-size: 1.75rem;
+      letter-spacing: -0.025em;
+    }
+
+    .content h2:first-child,
+    .content h1 + h2 {
+      margin-top: 0;
+      border-top: none;
+    }
+
+    .content h3 {
+      margin-top: 30px;
+      color: #e0f2fe;
+      font-size: 1.25rem;
+    }
+
+    .content h4 {
+      margin-top: 24px;
+      color: #ddd6fe;
+      font-size: 1.05rem;
+    }
+
+    .content p,
+    .content li {
+      color: var(--muted);
+    }
+
+    .content strong {
+      color: var(--text);
+    }
+
+    a {
+      color: var(--link);
+    }
+
+    hr {
+      border: 0;
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+      margin: 34px 0;
+    }
+
+    code {
+      font-family: "JetBrains Mono", "Fira Code", Consolas, Monaco, monospace;
+      background: rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 7px;
+      padding: 0.12em 0.36em;
+      color: #bae6fd;
+      font-size: 0.92em;
+    }
+
+    pre {
+      position: relative;
+      overflow: auto;
+      margin: 18px 0;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.96));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    pre code {
+      display: block;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: #dbeafe;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      white-space: pre;
+    }
+
+    blockquote {
+      margin: 22px 0;
+      padding: 16px 18px;
+      border-left: 4px solid var(--accent);
+      border-radius: 14px;
+      background: rgba(34, 211, 238, 0.07);
+      color: var(--text);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      overflow: hidden;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--text);
+      background: rgba(30, 41, 59, 0.95);
+    }
+
+    td {
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.48);
+    }
+
+    .footer {
+      margin-top: 28px;
+      padding: 22px;
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(15, 23, 42, 0.62);
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(100% - 20px, 1240px);
+        padding-top: 14px;
+      }
+
+      .hero,
+      .content {
+        padding: 24px;
+        border-radius: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero-content">
+        <div class="eyebrow">Paper Plugin Framework</div>
+        <h1>KaraAPI</h1>
+        <p>A modern Paper plugin API for structured bootstrapping, lifecycle services, tasks, commands, menus, UI, storage, profiles, custom items, requirements, regions, placeholders, and messages.</p>
+        <div class="badges">
+          <span class="badge">Paper 1.21+</span>
+          <span class="badge">Java 21</span>
+          <span class="badge">Adventure Components</span>
+          <span class="badge">PlaceholderAPI Softdepend</span>
+          <span class="badge">Folia Scheduler Adapter</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <p class="sidebar-title">Contents</p>
+        <ul>
+        <li><a href="#karaapi" id="toc-karaapi">KaraAPI</a>
+        <ul>
+        <li><a href="#features" id="toc-features">Features</a></li>
+        <li><a href="#compatibility"
+        id="toc-compatibility">Compatibility</a></li>
+        <li><a href="#package-layout" id="toc-package-layout">Package
+        Layout</a>
+        <ul>
+        <li><a href="#package-meanings"
+        id="toc-package-meanings">Package meanings</a></li>
+        </ul></li>
+        <li><a href="#installing-karaapi-as-a-dependency"
+        id="toc-installing-karaapi-as-a-dependency">Installing KaraAPI
+        as a Dependency</a>
+        <ul>
+        <li><a href="#karaapi-plugin.yml"
+        id="toc-karaapi-plugin.yml">KaraAPI
+        <code>plugin.yml</code></a></li>
+        <li><a href="#host-plugin-plugin.yml"
+        id="toc-host-plugin-plugin.yml">Host plugin
+        <code>plugin.yml</code></a></li>
+        </ul></li>
+        <li><a href="#gradle-setup" id="toc-gradle-setup">Gradle
+        Setup</a></li>
+        <li><a href="#bootstrapping-a-host-plugin"
+        id="toc-bootstrapping-a-host-plugin">Bootstrapping a Host
+        Plugin</a></li>
+        <li><a href="#plugin-modules" id="toc-plugin-modules">Plugin
+        Modules</a></li>
+        <li><a href="#bootstrapcontext"
+        id="toc-bootstrapcontext">BootstrapContext</a></li>
+        <li><a href="#servicecontainer"
+        id="toc-servicecontainer">ServiceContainer</a></li>
+        <li><a href="#task-api" id="toc-task-api">Task API</a></li>
+        <li><a href="#tick-api" id="toc-tick-api">Tick API</a></li>
+        <li><a href="#config-api" id="toc-config-api">Config
+        API</a></li>
+        <li><a href="#message-api" id="toc-message-api">Message API</a>
+        <ul>
+        <li><a href="#rendering-order"
+        id="toc-rendering-order">Rendering order</a></li>
+        </ul></li>
+        <li><a href="#placeholder-api"
+        id="toc-placeholder-api">Placeholder API</a>
+        <ul>
+        <li><a href="#placeholderapi-support"
+        id="toc-placeholderapi-support">PlaceholderAPI support</a></li>
+        </ul></li>
+        <li><a href="#creating-placeholderapi-expansions"
+        id="toc-creating-placeholderapi-expansions">Creating
+        PlaceholderAPI Expansions</a></li>
+        <li><a href="#ui-api" id="toc-ui-api">UI API</a>
+        <ul>
+        <li><a href="#chat" id="toc-chat">Chat</a></li>
+        <li><a href="#action-bar" id="toc-action-bar">Action
+        bar</a></li>
+        <li><a href="#gradient-action-bar-using-karaapi-gradient-object"
+        id="toc-gradient-action-bar-using-karaapi-gradient-object">Gradient
+        action bar using KaraAPI gradient object</a></li>
+        <li><a href="#title" id="toc-title">Title</a></li>
+        <li><a href="#boss-bar" id="toc-boss-bar">Boss bar</a></li>
+        <li><a href="#sidebar" id="toc-sidebar">Sidebar</a></li>
+        </ul></li>
+        <li><a href="#color-and-gradient-api"
+        id="toc-color-and-gradient-api">Color and Gradient API</a></li>
+        <li><a href="#command-api" id="toc-command-api">Command
+        API</a></li>
+        <li><a href="#menu-api" id="toc-menu-api">Menu API</a>
+        <ul>
+        <li><a href="#paginated-menus"
+        id="toc-paginated-menus">Paginated menus</a></li>
+        </ul></li>
+        <li><a href="#itembuilder"
+        id="toc-itembuilder">ItemBuilder</a></li>
+        <li><a href="#writtenbookbuilder"
+        id="toc-writtenbookbuilder">WrittenBookBuilder</a></li>
+        <li><a href="#custom-item-api" id="toc-custom-item-api">Custom
+        Item API</a></li>
+        <li><a href="#registry-api" id="toc-registry-api">Registry
+        API</a></li>
+        <li><a href="#storage-api" id="toc-storage-api">Storage
+        API</a></li>
+        <li><a href="#profile-api" id="toc-profile-api">Profile
+        API</a></li>
+        <li><a href="#requirement-api"
+        id="toc-requirement-api">Requirement API</a></li>
+        <li><a href="#region-api" id="toc-region-api">Region
+        API</a></li>
+        <li><a href="#event-bus" id="toc-event-bus">Event Bus</a></li>
+        <li><a href="#typed-command-arguments"
+        id="toc-typed-command-arguments">Typed Command Arguments</a></li>
+        <li><a href="#effect-api" id="toc-effect-api">Effect API</a></li>
+        <li><a href="#folia-scheduler-adapter"
+        id="toc-folia-scheduler-adapter">Folia Scheduler Adapter</a></li>
+        <li><a href="#recipe-api" id="toc-recipe-api">Recipe API</a></li>
+        <li><a href="#runtime-binding-updates"
+        id="toc-runtime-binding-updates">Runtime Binding Updates</a></li>
+        <li><a href="#listener-registration"
+        id="toc-listener-registration">Listener Registration</a></li>
+        <li><a href="#startup-messages"
+        id="toc-startup-messages">Startup Messages</a></li>
+        <li><a href="#paper-adapter-layer"
+        id="toc-paper-adapter-layer">Paper Adapter Layer</a></li>
+        <li><a href="#internal-package"
+        id="toc-internal-package">Internal Package</a></li>
+        <li><a href="#recommended-module-structure-for-host-plugins"
+        id="toc-recommended-module-structure-for-host-plugins">Recommended
+        Module Structure for Host Plugins</a></li>
+        <li><a href="#best-practices" id="toc-best-practices">Best
+        Practices</a>
+        <ul>
+        <li><a href="#use-servicecontainer-for-services"
+        id="toc-use-servicecontainer-for-services">Use
+        <code>ServiceContainer</code> for services</a></li>
+        <li><a href="#use-registryservice-for-content-registries"
+        id="toc-use-registryservice-for-content-registries">Use
+        <code>RegistryService</code> for content registries</a></li>
+        <li><a href="#use-messageservice-for-rendered-components"
+        id="toc-use-messageservice-for-rendered-components">Use
+        <code>MessageService</code> for rendered components</a></li>
+        <li><a href="#use-uiservice-for-output"
+        id="toc-use-uiservice-for-output">Use <code>UiService</code> for
+        output</a></li>
+        <li><a href="#use-local-placeholders-for-your-own-messages"
+        id="toc-use-local-placeholders-for-your-own-messages">Use local
+        placeholders for your own messages</a></li>
+        <li><a href="#use-placeholderapi-only-for-external-placeholders"
+        id="toc-use-placeholderapi-only-for-external-placeholders">Use
+        PlaceholderAPI only for external placeholders</a></li>
+        <li><a href="#use-closenexttick-and-opennexttick...-in-menus"
+        id="toc-use-closenexttick-and-opennexttick...-in-menus">Use
+        <code>closeNextTick()</code> and <code>openNextTick(...)</code>
+        in menus</a></li>
+        </ul></li>
+        <li><a href="#quick-full-example"
+        id="toc-quick-full-example">Quick Full Example</a></li>
+        <li><a href="#license" id="toc-license">License</a></li>
+        <li><a href="#credits" id="toc-credits">Credits</a></li>
+        </ul></li>
+        </ul>
+      </aside>
+
+      <main class="content">
+        <h1 id="karaapi">KaraAPI</h1>
+        <p>KaraAPI is a modern Paper plugin API/framework designed to
+        make plugin development cleaner, faster, and more
+        structured.</p>
+        <p>It provides a central runtime that bootstraps host plugins,
+        manages lifecycle services, tasks, commands, menus, UI,
+        configuration, messages, placeholders, storage, registries,
+        profiles, custom items, requirements, and regions.</p>
+        <p>KaraAPI is designed around this rule:</p>
+        <pre class="text"><code>KaraAPI manages the runtime.
+The host plugin owns its commands, listeners, tasks, configs, messages, items, and services.</code></pre>
+        <hr />
+        <h2 id="features">Features</h2>
+        <ul>
+        <li>Central bootstrapping through
+        <code>KaraAPI.boot(...)</code></li>
+        <li>Per-plugin runtime kernel</li>
+        <li>Lifecycle-aware service container</li>
+        <li><code>Startable</code>, <code>Stoppable</code>, and
+        <code>Tickable</code> interfaces</li>
+        <li>Tick orchestrator grouped by tick interval</li>
+        <li>Task API with task groups</li>
+        <li>Config API for YAML files</li>
+        <li>Message API with MiniMessage support</li>
+        <li>Local placeholders and optional PlaceholderAPI support</li>
+        <li>PlaceholderAPI expansion registration</li>
+        <li>Registry API for ID-based systems</li>
+        <li>Storage/repository API</li>
+        <li>Profile cache API</li>
+        <li>Command tree API</li>
+        <li>Menu/inventory GUI API</li>
+        <li>Item builders and custom item API</li>
+        <li>UI helpers for chat, action bar, title, boss bar, and
+        sidebar</li>
+        <li>Color and gradient utilities</li>
+        <li>Requirement API</li>
+        <li>Region API</li>
+        <li>Internal Paper adapter layer</li>
+        </ul>
+        <hr />
+        <h2 id="compatibility">Compatibility</h2>
+        <p>KaraAPI is primarily designed for:</p>
+        <pre class="text"><code>Paper 1.21+
+Java 21
+Non-Folia servers</code></pre>
+        <p>Some systems may work on older Paper versions, but the API
+        uses modern Paper/Adventure concepts such as
+        <code>Component</code>-based UI, item meta components, and
+        modern scheduling wrappers.</p>
+        <p>Folia support is available through KaraAPI's scheduler abstraction.
+        The regular <code>TaskService</code> is still intended for normal Paper
+        scheduling, while <code>KaraScheduler</code> provides Folia-aware
+        global, region, entity, and async scheduling.</p>
+        <hr />
+        <h2 id="package-layout">Package Layout</h2>
+        <pre class="text"><code>org.kerix.karaapi
+├── KaraAPIPlugin.java
+│
+├── api
+│   ├── KaraAPI.java
+│   ├── PluginHandle.java
+│   ├── bootstrap
+│   ├── lifecycle
+│   ├── service
+│   ├── startup
+│   ├── tick
+│   ├── task
+│   ├── scheduler
+│   ├── config
+│   ├── message
+│   ├── placeholder
+│   ├── registry
+│   ├── storage
+│   ├── profile
+│   ├── item
+│   ├── menu
+│   ├── ui
+│   ├── color
+│   ├── requirement
+│   ├── region
+│   ├── event
+│   ├── effect
+│   ├── recipe
+│   └── logic
+│
+├── runtime
+│   ├── KaraRuntime.java
+│   └── PluginKernel.java
+│
+├── paper
+│   ├── command
+│   ├── listener
+│   ├── scheduler
+│   ├── inventory
+│   ├── item
+│   ├── placeholder
+│   ├── recipe
+│   ├── scoreboard
+│   └── text
+│
+└── internal
+    ├── validate
+    ├── util
+    ├── collection
+    └── debug</code></pre>
+        <h3 id="package-meanings">Package meanings</h3>
+        <pre class="text"><code>api      = public API used by host plugins
+runtime  = KaraAPI boot/shutdown engine
+paper    = raw Bukkit/Paper adapter layer
+internal = private KaraAPI implementation helpers
+root     = KaraAPI&#39;s own plugin main class</code></pre>
+        <p>Host plugins should mainly import from:</p>
+        <div class="sourceCode" id="cb5"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>org<span class="op">.</span><span class="fu">kerix</span><span class="op">.</span><span class="fu">karaapi</span><span class="op">.</span><span class="fu">api</span><span class="op">.*</span></span></code></pre></div>
+        <p>They should not depend directly on:</p>
+        <div class="sourceCode" id="cb6"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>org<span class="op">.</span><span class="fu">kerix</span><span class="op">.</span><span class="fu">karaapi</span><span class="op">.</span><span class="fu">runtime</span><span class="op">.*</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>org<span class="op">.</span><span class="fu">kerix</span><span class="op">.</span><span class="fu">karaapi</span><span class="op">.</span><span class="fu">paper</span><span class="op">.*</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>org<span class="op">.</span><span class="fu">kerix</span><span class="op">.</span><span class="fu">karaapi</span><span class="op">.</span><span class="fu">internal</span><span class="op">.*</span></span></code></pre></div>
+        <hr />
+        <h2 id="installing-karaapi-as-a-dependency">Installing KaraAPI
+        as a Dependency</h2>
+        <h3 id="karaapi-plugin.yml">KaraAPI <code>plugin.yml</code></h3>
+        <div class="sourceCode" id="cb7"><pre
+        class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> KaraAPI</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;${version}&#39;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">main</span><span class="kw">:</span><span class="at"> org.kerix.karaapi.KaraAPIPlugin</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">api-version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;1.21&#39;</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">authors</span><span class="kw">:</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Kerix</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">description</span><span class="kw">:</span><span class="at"> Core API library for Kara plugins.</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span><span class="kw">:</span><span class="at"> STARTUP</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="fu">softdepend</span><span class="kw">:</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> PlaceholderAPI</span></span></code></pre></div>
+        <h3 id="host-plugin-plugin.yml">Host plugin
+        <code>plugin.yml</code></h3>
+        <p>A plugin that uses KaraAPI should depend on it:</p>
+        <div class="sourceCode" id="cb8"><pre
+        class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> ExamplePlugin</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;1.0.0&#39;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">main</span><span class="kw">:</span><span class="at"> com.example.exampleplugin.ExamplePlugin</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">api-version</span><span class="kw">:</span><span class="at"> </span><span class="st">&#39;1.21&#39;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">authors</span><span class="kw">:</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> Kerix</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">depend</span><span class="kw">:</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> KaraAPI</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="fu">commands</span><span class="kw">:</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">example</span><span class="kw">:</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Example command</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">usage</span><span class="kw">:</span><span class="at"> /example</span></span></code></pre></div>
+        <p>If your host plugin also directly uses PlaceholderAPI
+        behavior, you may add:</p>
+        <div class="sourceCode" id="cb9"><pre
+        class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">softdepend</span><span class="kw">:</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> PlaceholderAPI</span></span></code></pre></div>
+        <hr />
+          <hr />
+          <h2 id="gradle-setup">Gradle Setup</h2>
+          <p>Step 1. Add the JitPack repository in your <code>settings.gradle.kts</code> at the end of repositories:</p>
+          <div class="sourceCode" id="cb10"><pre
+                  class="sourceCode kotlin"><code class="sourceCode kotlin"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>dependencyResolutionManagement <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    repositoriesMode<span class="op">.</span>set<span class="op">(</span>RepositoriesMode<span class="op">.</span>FAIL_ON_PROJECT_REPOS<span class="op">)</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    repositories <span class="op">{</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        mavenCentral<span class="op">()</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        maven <span class="op">{</span> url <span class="op">=</span> uri<span class="op">(</span><span class="st">&quot;https://jitpack.io&quot;</span><span class="op">)</span> <span class="op">}</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+
+          <p>Step 2. Add KaraAPI as a dependency in your <code>build.gradle.kts</code>:</p>
+          <div class="sourceCode" id="cb10-9"><pre
+                  class="sourceCode kotlin"><code class="sourceCode kotlin"><span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>dependencies <span class="op">{</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    implementation<span class="op">(</span><span class="st">&quot;com.github.Karalium:KaraAPI:Tag&quot;</span><span class="op">)</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+
+          <p>Replace <code>Tag</code> with the release tag you want to use, for example:</p>
+          <div class="sourceCode" id="cb10-13"><pre
+                  class="sourceCode kotlin"><code class="sourceCode kotlin"><span id="cb10-14"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>implementation<span class="op">(</span><span class="st">&quot;com.github.Karalium:KaraAPI:v1.0.0&quot;</span><span class="op">)</span></span></code></pre></div>
+
+          <p>If KaraAPI is installed as a separate plugin on the server, you can use <code>compileOnly</code> instead of <code>implementation</code>:</p>
+          <div class="sourceCode" id="cb10-15"><pre
+                  class="sourceCode kotlin"><code class="sourceCode kotlin"><span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>dependencies <span class="op">{</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    compileOnly<span class="op">(</span><span class="st">&quot;com.github.Karalium:KaraAPI:Tag&quot;</span><span class="op">)</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>KaraAPI itself should be installed as a plugin on the server
+        when another plugin depends on it.</p>
+        <hr />
+        <h2 id="bootstrapping-a-host-plugin">Bootstrapping a Host
+        Plugin</h2>
+        <p>A host plugin should be very small. It delegates
+        bootstrapping to KaraAPI.</p>
+        <div class="sourceCode" id="cb11"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> com</span><span class="op">.</span><span class="im">example</span><span class="op">.</span><span class="im">exampleplugin</span><span class="op">;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">bukkit</span><span class="op">.</span><span class="im">plugin</span><span class="op">.</span><span class="im">java</span><span class="op">.</span><span class="im">JavaPlugin</span><span class="op">;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">kerix</span><span class="op">.</span><span class="im">karaapi</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">KaraAPI</span><span class="op">;</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">kerix</span><span class="op">.</span><span class="im">karaapi</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">PluginHandle</span><span class="op">;</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> ExamplePlugin <span class="kw">extends</span> JavaPlugin <span class="op">{</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> PluginHandle handle<span class="op">;</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onEnable</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">handle</span> <span class="op">=</span> KaraAPI<span class="op">.</span><span class="fu">boot</span><span class="op">(</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>                <span class="kw">this</span><span class="op">,</span></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>                <span class="kw">new</span> <span class="fu">CoreModule</span><span class="op">(),</span></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>                <span class="kw">new</span> <span class="fu">CommandModule</span><span class="op">(),</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>                <span class="kw">new</span> <span class="fu">ListenerModule</span><span class="op">(),</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>                <span class="kw">new</span> <span class="fu">PlaceholderModule</span><span class="op">()</span></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">);</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onDisable</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>handle <span class="op">!=</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>            handle<span class="op">.</span><span class="fu">shutdown</span><span class="op">();</span></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <hr />
+        <h2 id="plugin-modules">Plugin Modules</h2>
+        <p>Modules are where you register services, commands, listeners,
+        messages, items, profiles, and other plugin systems.</p>
+        <div class="sourceCode" id="cb12"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> com</span><span class="op">.</span><span class="im">example</span><span class="op">.</span><span class="im">exampleplugin</span><span class="op">;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">kerix</span><span class="op">.</span><span class="im">karaapi</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">bootstrap</span><span class="op">.</span><span class="im">BootstrapContext</span><span class="op">;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">kerix</span><span class="op">.</span><span class="im">karaapi</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">bootstrap</span><span class="op">.</span><span class="im">PluginModule</span><span class="op">;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> CoreModule <span class="kw">implements</span> PluginModule <span class="op">{</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">configure</span><span class="op">(</span>BootstrapContext context<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">hostPlugin</span><span class="op">().</span><span class="fu">getLogger</span><span class="op">().</span><span class="fu">info</span><span class="op">(</span><span class="st">&quot;Configuring core systems...&quot;</span><span class="op">);</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>Each module receives a <code>BootstrapContext</code>.</p>
+        <hr />
+        <h2 id="bootstrapcontext">BootstrapContext</h2>
+        <p><code>BootstrapContext</code> exposes all core services for
+        the host plugin:</p>
+        <div class="sourceCode" id="cb13"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">hostPlugin</span><span class="op">();</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">apiPlugin</span><span class="op">();</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">services</span><span class="op">();</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ticks</span><span class="op">();</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">tasks</span><span class="op">();</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">configs</span><span class="op">();</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">commands</span><span class="op">();</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">listeners</span><span class="op">();</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">announcer</span><span class="op">();</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">();</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">menus</span><span class="op">();</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">messages</span><span class="op">();</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">placeholders</span><span class="op">();</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">registries</span><span class="op">();</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">storage</span><span class="op">();</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">profiles</span><span class="op">();</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">customItems</span><span class="op">();</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">requirements</span><span class="op">();</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">regions</span><span class="op">();</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">events</span><span class="op">();</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">scheduler</span><span class="op">();</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">effects</span><span class="op">();</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">recipes</span><span class="op">();</span></span></code></pre></div>
+        <p>You can also retrieve services through the service
+        container:</p>
+        <div class="sourceCode" id="cb14"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>MyService service <span class="op">=</span> context<span class="op">.</span><span class="fu">service</span><span class="op">(</span>MyService<span class="op">.</span><span class="fu">class</span><span class="op">);</span></span></code></pre></div>
+        <hr />
+        <h2 id="servicecontainer">ServiceContainer</h2>
+        <p><code>ServiceContainer</code> is KaraAPI’s
+        dependency/lifecycle container.</p>
+        <p>It replaces the older name <code>ServiceRegistry</code> to
+        avoid confusion with <code>RegistryService</code>.</p>
+        <div class="sourceCode" id="cb15"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">services</span><span class="op">().</span><span class="fu">bind</span><span class="op">(</span>MyService<span class="op">.</span><span class="fu">class</span><span class="op">,</span> <span class="kw">new</span> <span class="fu">MyService</span><span class="op">());</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>MyService service <span class="op">=</span> context<span class="op">.</span><span class="fu">services</span><span class="op">().</span><span class="fu">get</span><span class="op">(</span>MyService<span class="op">.</span><span class="fu">class</span><span class="op">);</span></span></code></pre></div>
+        <p>Services may implement lifecycle interfaces:</p>
+        <div class="sourceCode" id="cb16"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">kerix</span><span class="op">.</span><span class="im">karaapi</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">lifecycle</span><span class="op">.</span><span class="im">Startable</span><span class="op">;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">kerix</span><span class="op">.</span><span class="im">karaapi</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">lifecycle</span><span class="op">.</span><span class="im">Stoppable</span><span class="op">;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">kerix</span><span class="op">.</span><span class="im">karaapi</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">lifecycle</span><span class="op">.</span><span class="im">Tickable</span><span class="op">;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> MyService <span class="kw">implements</span> Startable<span class="op">,</span> Stoppable<span class="op">,</span> Tickable <span class="op">{</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">start</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>        <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="st">&quot;Started&quot;</span><span class="op">);</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">stop</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="st">&quot;Stopped&quot;</span><span class="op">);</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">long</span> <span class="fu">tickInterval</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">20L</span><span class="op">;</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">tick</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>        <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="st">&quot;Tick every second&quot;</span><span class="op">);</span></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>When bound to the container:</p>
+        <div class="sourceCode" id="cb17"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">services</span><span class="op">().</span><span class="fu">bind</span><span class="op">(</span>MyService<span class="op">.</span><span class="fu">class</span><span class="op">,</span> <span class="kw">new</span> <span class="fu">MyService</span><span class="op">());</span></span></code></pre></div>
+        <p>KaraAPI will:</p>
+        <ol type="1">
+        <li>Start it if it implements <code>Startable</code></li>
+        <li>Register it with the tick orchestrator if it implements
+        <code>Tickable</code></li>
+        <li>Stop it on shutdown if it implements
+        <code>Stoppable</code></li>
+        </ol>
+        <hr />
+        <h2 id="task-api">Task API</h2>
+        <p>Use <code>TaskService</code> instead of directly calling
+        Bukkit’s scheduler.</p>
+        <div class="sourceCode" id="cb18"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">tasks</span><span class="op">().</span><span class="fu">sync</span><span class="op">(()</span> <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    player<span class="op">.</span><span class="fu">sendMessage</span><span class="op">(</span><span class="st">&quot;Runs on the main thread&quot;</span><span class="op">);</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="op">});</span></span></code></pre></div>
+        <p>Run later:</p>
+        <div class="sourceCode" id="cb19"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">tasks</span><span class="op">().</span><span class="fu">later</span><span class="op">(</span><span class="dv">20L</span><span class="op">,</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    player<span class="op">.</span><span class="fu">sendMessage</span><span class="op">(</span><span class="st">&quot;Ran one second later&quot;</span><span class="op">);</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="op">});</span></span></code></pre></div>
+        <p>Repeating task:</p>
+        <div class="sourceCode" id="cb20"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">tasks</span><span class="op">().</span><span class="fu">timer</span><span class="op">(</span><span class="dv">0L</span><span class="op">,</span> <span class="dv">20L</span><span class="op">,</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    player<span class="op">.</span><span class="fu">sendMessage</span><span class="op">(</span><span class="st">&quot;Runs every second&quot;</span><span class="op">);</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="op">});</span></span></code></pre></div>
+        <p>Controlled repeating task:</p>
+        <div class="sourceCode" id="cb21"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="dt">final</span> <span class="dt">int</span><span class="op">[]</span> countdown <span class="op">=</span> <span class="op">{</span><span class="dv">5</span><span class="op">};</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">tasks</span><span class="op">().</span><span class="fu">defaultGroup</span><span class="op">().</span><span class="fu">timerControlled</span><span class="op">(</span><span class="dv">0L</span><span class="op">,</span> <span class="dv">20L</span><span class="op">,</span> handle <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="op">(</span>countdown<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">&lt;=</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>        handle<span class="op">.</span><span class="fu">cancel</span><span class="op">();</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    player<span class="op">.</span><span class="fu">sendMessage</span><span class="op">(</span><span class="st">&quot;Countdown: &quot;</span> <span class="op">+</span> countdown<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    countdown<span class="op">[</span><span class="dv">0</span><span class="op">]--;</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="op">});</span></span></code></pre></div>
+        <p>Task groups:</p>
+        <div class="sourceCode" id="cb22"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">tasks</span><span class="op">().</span><span class="fu">group</span><span class="op">(</span><span class="st">&quot;lobby&quot;</span><span class="op">).</span><span class="fu">timer</span><span class="op">(</span><span class="st">&quot;scoreboard&quot;</span><span class="op">,</span> <span class="dv">0L</span><span class="op">,</span> <span class="dv">20L</span><span class="op">,</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">// update scoreboard</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="op">});</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">tasks</span><span class="op">().</span><span class="fu">cancelGroup</span><span class="op">(</span><span class="st">&quot;lobby&quot;</span><span class="op">);</span></span></code></pre></div>
+        <hr />
+        <h2 id="tick-api">Tick API</h2>
+        <p>For lifecycle services that need ticking, implement
+        <code>Tickable</code>:</p>
+        <div class="sourceCode" id="cb23"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> LobbyTicker <span class="kw">implements</span> Tickable <span class="op">{</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">long</span> <span class="fu">tickInterval</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="dv">20L</span><span class="op">;</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">tick</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>        <span class="co">// runs every 20 ticks</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>Bind it:</p>
+        <div class="sourceCode" id="cb24"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">services</span><span class="op">().</span><span class="fu">bind</span><span class="op">(</span>LobbyTicker<span class="op">.</span><span class="fu">class</span><span class="op">,</span> <span class="kw">new</span> <span class="fu">LobbyTicker</span><span class="op">());</span></span></code></pre></div>
+        <p>KaraAPI groups tickables by interval so all tickables with
+        the same interval share one Bukkit task.</p>
+        <hr />
+        <h2 id="config-api">Config API</h2>
+        <p>Load <code>config.yml</code>:</p>
+        <div class="sourceCode" id="cb25"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>YamlConfig config <span class="op">=</span> context<span class="op">.</span><span class="fu">configs</span><span class="op">().</span><span class="fu">main</span><span class="op">();</span></span></code></pre></div>
+        <p>Load another file:</p>
+        <div class="sourceCode" id="cb26"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>YamlConfig messages <span class="op">=</span> context<span class="op">.</span><span class="fu">configs</span><span class="op">().</span><span class="fu">config</span><span class="op">(</span><span class="st">&quot;messages.yml&quot;</span><span class="op">);</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>YamlConfig arenas <span class="op">=</span> context<span class="op">.</span><span class="fu">configs</span><span class="op">().</span><span class="fu">config</span><span class="op">(</span><span class="st">&quot;arenas/spawn.yml&quot;</span><span class="op">);</span></span></code></pre></div>
+        <p>Typed keys:</p>
+        <div class="sourceCode" id="cb27"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> MyConfigKeys <span class="op">{</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">final</span> ConfigKey<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> SERVER_NAME <span class="op">=</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>            ConfigKey<span class="op">.</span><span class="fu">string</span><span class="op">(</span><span class="st">&quot;server.name&quot;</span><span class="op">,</span> <span class="st">&quot;Kara Server&quot;</span><span class="op">);</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">final</span> ConfigKey<span class="op">&lt;</span><span class="bu">Integer</span><span class="op">&gt;</span> MAX_PLAYERS <span class="op">=</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>            ConfigKey<span class="op">.</span><span class="fu">integer</span><span class="op">(</span><span class="st">&quot;server.max-players&quot;</span><span class="op">,</span> <span class="dv">100</span><span class="op">);</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="fu">MyConfigKeys</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>Usage:</p>
+        <div class="sourceCode" id="cb28"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="bu">String</span> serverName <span class="op">=</span> config<span class="op">.</span><span class="fu">get</span><span class="op">(</span>MyConfigKeys<span class="op">.</span><span class="fu">SERVER_NAME</span><span class="op">);</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> maxPlayers <span class="op">=</span> config<span class="op">.</span><span class="fu">get</span><span class="op">(</span>MyConfigKeys<span class="op">.</span><span class="fu">MAX_PLAYERS</span><span class="op">);</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>config<span class="op">.</span><span class="fu">set</span><span class="op">(</span>MyConfigKeys<span class="op">.</span><span class="fu">SERVER_NAME</span><span class="op">,</span> <span class="st">&quot;New Server Name&quot;</span><span class="op">);</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>config<span class="op">.</span><span class="fu">save</span><span class="op">();</span></span></code></pre></div>
+        <hr />
+        <h2 id="message-api">Message API</h2>
+        <p>Messages are loaded from <code>messages.yml</code>.</p>
+        <p>Example <code>messages.yml</code>:</p>
+        <div class="sourceCode" id="cb29"><pre
+        class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">prefix</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;&lt;gray&gt;[&lt;aqua&gt;Kara&lt;/aqua&gt;]&lt;/gray&gt;&quot;</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="fu">messages</span><span class="kw">:</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">welcome</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;&lt;prefix&gt; &lt;green&gt;Welcome, &lt;player&gt;!&lt;/green&gt;&quot;</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">coins</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;&lt;prefix&gt; &lt;yellow&gt;You have &lt;coins&gt; coins.&lt;/yellow&gt;&quot;</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">gradient</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;&lt;gradient:#00ffaa:#ff00ff&gt;Hello &lt;player&gt;&lt;/gradient&gt;&quot;</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">papi</span><span class="kw">:</span><span class="at"> </span><span class="st">&quot;&lt;prefix&gt; &lt;gray&gt;Server online: %server_online%&lt;/gray&gt;&quot;</span></span></code></pre></div>
+        <p>Define keys:</p>
+        <div class="sourceCode" id="cb30"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> MyMessages <span class="op">{</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">final</span> MessageKey WELCOME <span class="op">=</span> MessageKey<span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;messages.welcome&quot;</span><span class="op">,</span></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;&lt;prefix&gt; &lt;green&gt;Welcome, &lt;player&gt;!&lt;/green&gt;&quot;</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">final</span> MessageKey COINS <span class="op">=</span> MessageKey<span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;messages.coins&quot;</span><span class="op">,</span></span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;&lt;prefix&gt; &lt;yellow&gt;You have &lt;coins&gt; coins.&lt;/yellow&gt;&quot;</span></span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">);</span></span>
+<span id="cb30-12"><a href="#cb30-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-13"><a href="#cb30-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="fu">MyMessages</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb30-14"><a href="#cb30-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb30-15"><a href="#cb30-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>Send a message:</p>
+        <div class="sourceCode" id="cb31"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">messages</span><span class="op">().</span><span class="fu">send</span><span class="op">(</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>        MyMessages<span class="op">.</span><span class="fu">WELCOME</span><span class="op">,</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;player&quot;</span><span class="op">,</span> player<span class="op">.</span><span class="fu">getName</span><span class="op">())</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <p>Render a component:</p>
+        <div class="sourceCode" id="cb32"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Component</span> component <span class="op">=</span> context<span class="op">.</span><span class="fu">messages</span><span class="op">().</span><span class="fu">component</span><span class="op">(</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;gradient:#00ffaa:#ff00ff&gt;Hello &lt;player&gt;, online: %server_online%&lt;/gradient&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;player&quot;</span><span class="op">,</span> player<span class="op">.</span><span class="fu">getName</span><span class="op">())</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <h3 id="rendering-order">Rendering order</h3>
+        <pre class="text"><code>raw text
+→ local placeholders
+→ PlaceholderAPI placeholders, if PlaceholderAPI is installed
+→ MiniMessage tags and gradients
+→ Adventure Component</code></pre>
+        <p>So this works:</p>
+        <div class="sourceCode" id="cb34"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">chat</span><span class="op">(</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;gradient:#00ffaa:#ff00ff&gt;Hello &lt;player&gt;, online: %server_online%&lt;/gradient&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;player&quot;</span><span class="op">,</span> player<span class="op">.</span><span class="fu">getName</span><span class="op">())</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <hr />
+        <h2 id="placeholder-api">Placeholder API</h2>
+        <p>KaraAPI has its own placeholder system that works even if
+        PlaceholderAPI is not installed.</p>
+        <div class="sourceCode" id="cb35"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>PlaceholderSet placeholders <span class="op">=</span> PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">()</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;player&quot;</span><span class="op">,</span> player<span class="op">.</span><span class="fu">getName</span><span class="op">())</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;coins&quot;</span><span class="op">,</span> <span class="dv">250</span><span class="op">);</span></span></code></pre></div>
+        <p>This replaces:</p>
+        <pre class="text"><code>&lt;player&gt;
+&lt;coins&gt;
+%player%
+%coins%</code></pre>
+        <p>Example:</p>
+        <div class="sourceCode" id="cb37"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Component</span> component <span class="op">=</span> context<span class="op">.</span><span class="fu">messages</span><span class="op">().</span><span class="fu">component</span><span class="op">(</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;green&gt;Hello &lt;player&gt;, coins: &lt;coins&gt;&lt;/green&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>        placeholders</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <h3 id="placeholderapi-support">PlaceholderAPI support</h3>
+        <p>If PlaceholderAPI is installed, KaraAPI also resolves
+        placeholders like:</p>
+        <pre class="text"><code>%player_name%
+%server_online%
+%vault_eco_balance%</code></pre>
+        <p>If PlaceholderAPI is absent, local placeholders still work.
+        PlaceholderAPI placeholders remain unresolved as text.</p>
+        <hr />
+        <h2 id="creating-placeholderapi-expansions">Creating
+        PlaceholderAPI Expansions</h2>
+        <p>Host plugins can register PlaceholderAPI expansions through
+        KaraAPI.</p>
+        <div class="sourceCode" id="cb39"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> PlaceholderModule <span class="kw">implements</span> PluginModule <span class="op">{</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">configure</span><span class="op">(</span>BootstrapContext context<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">placeholders</span><span class="op">().</span><span class="fu">registerExpansion</span><span class="op">(</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>                KaraPlaceholderExpansion<span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>                        context<span class="op">.</span><span class="fu">hostPlugin</span><span class="op">(),</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;example&quot;</span><span class="op">,</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>                        <span class="op">(</span>player<span class="op">,</span> params<span class="op">)</span> <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>                            <span class="cf">if</span> <span class="op">(</span>player <span class="op">==</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>                                <span class="cf">return</span> <span class="st">&quot;&quot;</span><span class="op">;</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>                            <span class="op">}</span></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>                            <span class="cf">return</span> <span class="cf">switch</span> <span class="op">(</span>params<span class="op">.</span><span class="fu">toLowerCase</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>                                <span class="cf">case</span> <span class="st">&quot;name&quot;</span> <span class="op">-&gt;</span> player<span class="op">.</span><span class="fu">getName</span><span class="op">();</span></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>                                <span class="cf">case</span> <span class="st">&quot;online&quot;</span> <span class="op">-&gt;</span> <span class="bu">String</span><span class="op">.</span><span class="fu">valueOf</span><span class="op">(</span>player<span class="op">.</span><span class="fu">isOnline</span><span class="op">());</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>                                <span class="cf">case</span> <span class="st">&quot;coins&quot;</span> <span class="op">-&gt;</span> <span class="st">&quot;250&quot;</span><span class="op">;</span></span>
+<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a>                                <span class="cf">case</span> <span class="st">&quot;rank&quot;</span> <span class="op">-&gt;</span> <span class="st">&quot;Admin&quot;</span><span class="op">;</span></span>
+<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a>                                <span class="kw">default</span> <span class="op">-&gt;</span> <span class="kw">null</span><span class="op">;</span></span>
+<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a>                            <span class="op">};</span></span>
+<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>                        <span class="op">}</span></span>
+<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>                <span class="op">)</span></span>
+<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a>        <span class="op">);</span></span>
+<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>This creates PlaceholderAPI placeholders:</p>
+        <pre class="text"><code>%example_name%
+%example_online%
+%example_coins%
+%example_rank%</code></pre>
+        <p>If PlaceholderAPI is not installed, registration safely
+        returns <code>false</code> and KaraAPI keeps working.</p>
+        <hr />
+        <h2 id="ui-api">UI API</h2>
+        <p>The UI API supports chat, action bar, titles, boss bars, and
+        sidebars.</p>
+        <h3 id="chat">Chat</h3>
+        <div class="sourceCode" id="cb41"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">chat</span><span class="op">(</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;green&gt;Hello &lt;player&gt;&lt;/green&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;player&quot;</span><span class="op">,</span> player<span class="op">.</span><span class="fu">getName</span><span class="op">())</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <h3 id="action-bar">Action bar</h3>
+        <div class="sourceCode" id="cb42"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">actionBar</span><span class="op">(</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;gradient:#00ffaa:#ff00ff&gt;Dash Ready!&lt;/gradient&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">()</span></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <h3
+        id="gradient-action-bar-using-karaapi-gradient-object">Gradient
+        action bar using KaraAPI gradient object</h3>
+        <div class="sourceCode" id="cb43"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">gradientActionBar</span><span class="op">(</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Coins: &lt;coins&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;coins&quot;</span><span class="op">,</span> <span class="dv">250</span><span class="op">),</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;#ffaa00&quot;</span><span class="op">,</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;#ffff00&quot;</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <h3 id="title">Title</h3>
+        <div class="sourceCode" id="cb44"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">title</span><span class="op">(</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;gradient:#00ffaa:#00ffff&gt;Welcome&lt;/gradient&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;gray&gt;Hello &lt;player&gt;&lt;/gray&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;player&quot;</span><span class="op">,</span> player<span class="op">.</span><span class="fu">getName</span><span class="op">())</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <h3 id="boss-bar">Boss bar</h3>
+        <div class="sourceCode" id="cb45"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>BossBarHandle bar <span class="op">=</span> context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">bossBar</span><span class="op">(</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;red&gt;Boss Fight&lt;/red&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">(),</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>        <span class="fl">1.0F</span><span class="op">,</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>        BossBar<span class="op">.</span><span class="fu">Color</span><span class="op">.</span><span class="fu">RED</span><span class="op">,</span></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>        BossBar<span class="op">.</span><span class="fu">Overlay</span><span class="op">.</span><span class="fu">PROGRESS</span></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>bar<span class="op">.</span><span class="fu">show</span><span class="op">(</span>player<span class="op">);</span></span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>bar<span class="op">.</span><span class="fu">progress</span><span class="op">(</span><span class="fl">0.5F</span><span class="op">);</span></span></code></pre></div>
+        <h3 id="sidebar">Sidebar</h3>
+        <div class="sourceCode" id="cb46"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">sidebar</span><span class="op">(</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;gradient:#00ffaa:#ff00ff&gt;Kara Server&lt;/gradient&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">()</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="op">).</span><span class="fu">lines</span><span class="op">(</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">messages</span><span class="op">().</span><span class="fu">component</span><span class="op">(</span>player<span class="op">,</span> <span class="st">&quot;&lt;yellow&gt;Coins: &lt;coins&gt;&lt;/yellow&gt;&quot;</span><span class="op">,</span> PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;coins&quot;</span><span class="op">,</span> <span class="dv">250</span><span class="op">)),</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">messages</span><span class="op">().</span><span class="fu">component</span><span class="op">(</span>player<span class="op">,</span> <span class="st">&quot;&lt;gray&gt;Online: %server_online%&lt;/gray&gt;&quot;</span><span class="op">,</span> PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">())</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <hr />
+        <h2 id="color-and-gradient-api">Color and Gradient API</h2>
+        <p>Create gradient components directly:</p>
+        <div class="sourceCode" id="cb47"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Component</span> component <span class="op">=</span> ColorGradient<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">&quot;#00ffaa&quot;</span><span class="op">,</span> <span class="st">&quot;#ff00ff&quot;</span><span class="op">)</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">component</span><span class="op">(</span><span class="st">&quot;Gradient Text&quot;</span><span class="op">);</span></span></code></pre></div>
+        <p>Use via <code>KaraUI</code>:</p>
+        <div class="sourceCode" id="cb48"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Component</span> component <span class="op">=</span> KaraUI<span class="op">.</span><span class="fu">gradient</span><span class="op">(</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;Gradient Text&quot;</span><span class="op">,</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;#00ffaa&quot;</span><span class="op">,</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;#ff00ff&quot;</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <p>Use MiniMessage gradient syntax when rendering messages:</p>
+        <div class="sourceCode" id="cb49"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">messages</span><span class="op">().</span><span class="fu">component</span><span class="op">(</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>        player<span class="op">,</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;&lt;gradient:#00ffaa:#ff00ff&gt;Hello &lt;player&gt;&lt;/gradient&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>        PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;player&quot;</span><span class="op">,</span> player<span class="op">.</span><span class="fu">getName</span><span class="op">())</span></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <hr />
+        <h2 id="command-api">Command API</h2>
+        <p>Commands are built using command nodes.</p>
+        <p><code>plugin.yml</code>:</p>
+        <div class="sourceCode" id="cb50"><pre
+        class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">commands</span><span class="kw">:</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">example</span><span class="kw">:</span></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">description</span><span class="kw">:</span><span class="at"> Example command</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">usage</span><span class="kw">:</span><span class="at"> /example</span></span></code></pre></div>
+        <p>Register command:</p>
+        <div class="sourceCode" id="cb51"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> CommandModule <span class="kw">implements</span> PluginModule <span class="op">{</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">configure</span><span class="op">(</span>BootstrapContext context<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">commands</span><span class="op">().</span><span class="fu">register</span><span class="op">(</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>                KaraCommands<span class="op">.</span><span class="fu">command</span><span class="op">(</span><span class="st">&quot;example&quot;</span><span class="op">)</span></span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span><span class="fu">usage</span><span class="op">(</span><span class="st">&quot;/example &lt;reload|coins&gt;&quot;</span><span class="op">)</span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span><span class="fu">permission</span><span class="op">(</span><span class="st">&quot;example.use&quot;</span><span class="op">)</span></span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span><span class="fu">then</span><span class="op">(</span>KaraCommands<span class="op">.</span><span class="fu">command</span><span class="op">(</span><span class="st">&quot;reload&quot;</span><span class="op">)</span></span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>                                <span class="op">.</span><span class="fu">permission</span><span class="op">(</span><span class="st">&quot;example.reload&quot;</span><span class="op">)</span></span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>                                <span class="op">.</span><span class="fu">executes</span><span class="op">(</span>ctx <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>                                    context<span class="op">.</span><span class="fu">configs</span><span class="op">().</span><span class="fu">reloadAll</span><span class="op">();</span></span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>                                    context<span class="op">.</span><span class="fu">messages</span><span class="op">().</span><span class="fu">reloadAll</span><span class="op">();</span></span>
+<span id="cb51-15"><a href="#cb51-15" aria-hidden="true" tabindex="-1"></a>                                    <span class="cf">return</span> CommandResult<span class="op">.</span><span class="fu">message</span><span class="op">(</span><span class="st">&quot;Reloaded.&quot;</span><span class="op">);</span></span>
+<span id="cb51-16"><a href="#cb51-16" aria-hidden="true" tabindex="-1"></a>                                <span class="op">}))</span></span>
+<span id="cb51-17"><a href="#cb51-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-18"><a href="#cb51-18" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span><span class="fu">then</span><span class="op">(</span>KaraCommands<span class="op">.</span><span class="fu">command</span><span class="op">(</span><span class="st">&quot;coins&quot;</span><span class="op">)</span></span>
+<span id="cb51-19"><a href="#cb51-19" aria-hidden="true" tabindex="-1"></a>                                <span class="op">.</span><span class="fu">playerOnly</span><span class="op">()</span></span>
+<span id="cb51-20"><a href="#cb51-20" aria-hidden="true" tabindex="-1"></a>                                <span class="op">.</span><span class="fu">executes</span><span class="op">(</span>ctx <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb51-21"><a href="#cb51-21" aria-hidden="true" tabindex="-1"></a>                                    ctx<span class="op">.</span><span class="fu">player</span><span class="op">().</span><span class="fu">sendMessage</span><span class="op">(</span><span class="st">&quot;You have 250 coins.&quot;</span><span class="op">);</span></span>
+<span id="cb51-22"><a href="#cb51-22" aria-hidden="true" tabindex="-1"></a>                                    <span class="cf">return</span> CommandResult<span class="op">.</span><span class="fu">success</span><span class="op">();</span></span>
+<span id="cb51-23"><a href="#cb51-23" aria-hidden="true" tabindex="-1"></a>                                <span class="op">}))</span></span>
+<span id="cb51-24"><a href="#cb51-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb51-25"><a href="#cb51-25" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span><span class="fu">build</span><span class="op">()</span></span>
+<span id="cb51-26"><a href="#cb51-26" aria-hidden="true" tabindex="-1"></a>        <span class="op">);</span></span>
+<span id="cb51-27"><a href="#cb51-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb51-28"><a href="#cb51-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>Arguments:</p>
+        <div class="sourceCode" id="cb52"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="bu">String</span> target <span class="op">=</span> ctx<span class="op">.</span><span class="fu">arguments</span><span class="op">().</span><span class="fu">get</span><span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> amount <span class="op">=</span> ctx<span class="op">.</span><span class="fu">arguments</span><span class="op">().</span><span class="fu">integer</span><span class="op">(</span><span class="dv">1</span><span class="op">);</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="bu">String</span> reason <span class="op">=</span> ctx<span class="op">.</span><span class="fu">arguments</span><span class="op">().</span><span class="fu">join</span><span class="op">(</span><span class="dv">2</span><span class="op">);</span></span></code></pre></div>
+        <p>Suggestions:</p>
+        <div class="sourceCode" id="cb53"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="op">.</span><span class="fu">suggests</span><span class="op">((</span>ctx<span class="op">,</span> current<span class="op">)</span> <span class="op">-&gt;</span> context<span class="op">.</span><span class="fu">hostPlugin</span><span class="op">()</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">getServer</span><span class="op">()</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">getOnlinePlayers</span><span class="op">()</span></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">stream</span><span class="op">()</span></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">map</span><span class="op">(</span>Player<span class="op">::</span>getName<span class="op">)</span></span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">toList</span><span class="op">())</span></span></code></pre></div>
+        <hr />
+        <h2 id="menu-api">Menu API</h2>
+        <p>Create inventory GUIs without manually handling inventory
+        events.</p>
+        <div class="sourceCode" id="cb54"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Menu</span> menu <span class="op">=</span> <span class="bu">Menu</span><span class="op">.</span><span class="fu">builder</span><span class="op">(</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>        KaraUI<span class="op">.</span><span class="fu">gradient</span><span class="op">(</span><span class="st">&quot;Shop&quot;</span><span class="op">,</span> <span class="st">&quot;#00ffaa&quot;</span><span class="op">,</span> <span class="st">&quot;#00ffff&quot;</span><span class="op">),</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>        <span class="dv">3</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="op">).</span><span class="fu">border</span><span class="op">(</span></span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>        ItemBuilder<span class="op">.</span><span class="fu">of</span><span class="op">(</span>Material<span class="op">.</span><span class="fu">GRAY_STAINED_GLASS_PANE</span><span class="op">)</span></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">name</span><span class="op">(</span><span class="bu">Component</span><span class="op">.</span><span class="fu">empty</span><span class="op">())</span></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">build</span><span class="op">()</span></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a><span class="op">).</span><span class="fu">slot</span><span class="op">(</span></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>        <span class="dv">11</span><span class="op">,</span></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a>        ItemBuilder<span class="op">.</span><span class="fu">of</span><span class="op">(</span>Material<span class="op">.</span><span class="fu">DIAMOND_SWORD</span><span class="op">)</span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">name</span><span class="op">(</span>KaraUI<span class="op">.</span><span class="fu">gradient</span><span class="op">(</span><span class="st">&quot;Sword&quot;</span><span class="op">,</span> <span class="st">&quot;#00ffff&quot;</span><span class="op">,</span> <span class="st">&quot;#ff00ff&quot;</span><span class="op">))</span></span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">lore</span><span class="op">(</span><span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Click to buy&quot;</span><span class="op">))</span></span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">build</span><span class="op">(),</span></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a>        click <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>            click<span class="op">.</span><span class="fu">player</span><span class="op">().</span><span class="fu">sendMessage</span><span class="op">(</span><span class="st">&quot;Bought sword.&quot;</span><span class="op">);</span></span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>            click<span class="op">.</span><span class="fu">closeNextTick</span><span class="op">();</span></span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a><span class="op">).</span><span class="fu">slot</span><span class="op">(</span></span>
+<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>        <span class="dv">15</span><span class="op">,</span></span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>        ItemBuilder<span class="op">.</span><span class="fu">of</span><span class="op">(</span>Material<span class="op">.</span><span class="fu">BARRIER</span><span class="op">)</span></span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">name</span><span class="op">(</span><span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Close&quot;</span><span class="op">))</span></span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">build</span><span class="op">(),</span></span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>        MenuClick<span class="op">::</span>closeNextTick</span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a><span class="op">).</span><span class="fu">build</span><span class="op">();</span></span>
+<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">menus</span><span class="op">().</span><span class="fu">open</span><span class="op">(</span>player<span class="op">,</span> menu<span class="op">);</span></span></code></pre></div>
+        <h3 id="paginated-menus">Paginated menus</h3>
+        <div class="sourceCode" id="cb55"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="bu">List</span><span class="op">&lt;</span><span class="bu">MenuItem</span><span class="op">&gt;</span> items <span class="op">=</span> rewards<span class="op">.</span><span class="fu">stream</span><span class="op">()</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">map</span><span class="op">(</span>reward <span class="op">-&gt;</span> <span class="bu">MenuItem</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>                reward<span class="op">.</span><span class="fu">icon</span><span class="op">(),</span></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>                click <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>                    click<span class="op">.</span><span class="fu">player</span><span class="op">().</span><span class="fu">sendMessage</span><span class="op">(</span><span class="st">&quot;Selected &quot;</span> <span class="op">+</span> reward<span class="op">.</span><span class="fu">name</span><span class="op">());</span></span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>                    click<span class="op">.</span><span class="fu">closeNextTick</span><span class="op">();</span></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>                <span class="op">}</span></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">))</span></span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">toList</span><span class="op">();</span></span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>PaginationControls controls <span class="op">=</span> <span class="kw">new</span> <span class="fu">PaginationControls</span><span class="op">(</span></span>
+<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>        ItemBuilder<span class="op">.</span><span class="fu">of</span><span class="op">(</span>Material<span class="op">.</span><span class="fu">ARROW</span><span class="op">).</span><span class="fu">name</span><span class="op">(</span><span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Previous&quot;</span><span class="op">)).</span><span class="fu">build</span><span class="op">(),</span></span>
+<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>        ItemBuilder<span class="op">.</span><span class="fu">of</span><span class="op">(</span>Material<span class="op">.</span><span class="fu">ARROW</span><span class="op">).</span><span class="fu">name</span><span class="op">(</span><span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Next&quot;</span><span class="op">)).</span><span class="fu">build</span><span class="op">(),</span></span>
+<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>        ItemBuilder<span class="op">.</span><span class="fu">of</span><span class="op">(</span>Material<span class="op">.</span><span class="fu">BARRIER</span><span class="op">).</span><span class="fu">name</span><span class="op">(</span><span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Close&quot;</span><span class="op">)).</span><span class="fu">build</span><span class="op">(),</span></span>
+<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>        <span class="dv">45</span><span class="op">,</span></span>
+<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>        <span class="dv">53</span><span class="op">,</span></span>
+<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>        <span class="dv">49</span></span>
+<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>PaginatedMenu paginated <span class="op">=</span> PaginatedMenu<span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>        <span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Rewards&quot;</span><span class="op">),</span></span>
+<span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a>        <span class="dv">6</span><span class="op">,</span></span>
+<span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a>        items<span class="op">,</span></span>
+<span id="cb55-24"><a href="#cb55-24" aria-hidden="true" tabindex="-1"></a>        PaginatedMenu<span class="op">.</span><span class="fu">rectangularSlots</span><span class="op">(</span><span class="dv">1</span><span class="op">,</span> <span class="dv">4</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">7</span><span class="op">),</span></span>
+<span id="cb55-25"><a href="#cb55-25" aria-hidden="true" tabindex="-1"></a>        controls</span>
+<span id="cb55-26"><a href="#cb55-26" aria-hidden="true" tabindex="-1"></a><span class="op">).</span><span class="fu">titleRenderer</span><span class="op">(</span>page <span class="op">-&gt;</span> <span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Rewards - Page &quot;</span> <span class="op">+</span> <span class="op">(</span>page <span class="op">+</span> <span class="dv">1</span><span class="op">)));</span></span>
+<span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-28"><a href="#cb55-28" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">menus</span><span class="op">().</span><span class="fu">open</span><span class="op">(</span>player<span class="op">,</span> paginated<span class="op">.</span><span class="fu">page</span><span class="op">(</span><span class="dv">0</span><span class="op">));</span></span></code></pre></div>
+        <hr />
+        <h2 id="itembuilder">ItemBuilder</h2>
+        <div class="sourceCode" id="cb56"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>ItemStack item <span class="op">=</span> ItemBuilder<span class="op">.</span><span class="fu">of</span><span class="op">(</span>Material<span class="op">.</span><span class="fu">DIAMOND_SWORD</span><span class="op">)</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">name</span><span class="op">(</span>KaraUI<span class="op">.</span><span class="fu">gradient</span><span class="op">(</span><span class="st">&quot;Magic Sword&quot;</span><span class="op">,</span> <span class="st">&quot;#00ffaa&quot;</span><span class="op">,</span> <span class="st">&quot;#ff00ff&quot;</span><span class="op">))</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">lore</span><span class="op">(</span></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>                <span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;A powerful sword.&quot;</span><span class="op">),</span></span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>                KaraUI<span class="op">.</span><span class="fu">gradient</span><span class="op">(</span><span class="st">&quot;Forged with KaraAPI&quot;</span><span class="op">,</span> <span class="st">&quot;#ffaa00&quot;</span><span class="op">,</span> <span class="st">&quot;#ffff00&quot;</span><span class="op">)</span></span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">)</span></span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">enchant</span><span class="op">(</span>Enchantment<span class="op">.</span><span class="fu">SHARPNESS</span><span class="op">,</span> <span class="dv">5</span><span class="op">)</span></span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">unbreakable</span><span class="op">()</span></span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">hideAll</span><span class="op">()</span></span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">build</span><span class="op">();</span></span></code></pre></div>
+        <p>With persistent data:</p>
+        <div class="sourceCode" id="cb57"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>NamespacedKey key <span class="op">=</span> ItemKeys<span class="op">.</span><span class="fu">of</span><span class="op">(</span>plugin<span class="op">,</span> <span class="st">&quot;item_id&quot;</span><span class="op">);</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>ItemStack token <span class="op">=</span> ItemBuilder<span class="op">.</span><span class="fu">of</span><span class="op">(</span>Material<span class="op">.</span><span class="fu">EMERALD</span><span class="op">)</span></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">name</span><span class="op">(</span><span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Shop Token&quot;</span><span class="op">))</span></span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">data</span><span class="op">(</span>key<span class="op">,</span> PersistentDataType<span class="op">.</span><span class="fu">STRING</span><span class="op">,</span> <span class="st">&quot;shop_token&quot;</span><span class="op">)</span></span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">build</span><span class="op">();</span></span></code></pre></div>
+        <hr />
+        <h2 id="writtenbookbuilder">WrittenBookBuilder</h2>
+        <div class="sourceCode" id="cb58"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>ItemStack book <span class="op">=</span> WrittenBookBuilder<span class="op">.</span><span class="fu">create</span><span class="op">()</span></span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">title</span><span class="op">(</span><span class="st">&quot;Kara Guide&quot;</span><span class="op">)</span></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">author</span><span class="op">(</span><span class="st">&quot;KaraAPI&quot;</span><span class="op">)</span></span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">page</span><span class="op">(</span>page <span class="op">-&gt;</span> page</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">append</span><span class="op">(</span>KaraUI<span class="op">.</span><span class="fu">gradient</span><span class="op">(</span><span class="st">&quot;Welcome to KaraAPI&quot;</span><span class="op">,</span> <span class="st">&quot;#00ffaa&quot;</span><span class="op">,</span> <span class="st">&quot;#ff00ff&quot;</span><span class="op">))</span></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">newline</span><span class="op">()</span></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">newline</span><span class="op">()</span></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">command</span><span class="op">(</span></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;Click to spawn&quot;</span><span class="op">,</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;/spawn&quot;</span><span class="op">,</span></span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a>                        <span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Teleport to spawn&quot;</span><span class="op">)</span></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a>                <span class="op">)</span></span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">newline</span><span class="op">()</span></span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">url</span><span class="op">(</span></span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;Website&quot;</span><span class="op">,</span></span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;https://example.com&quot;</span><span class="op">,</span></span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>                        <span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Open website&quot;</span><span class="op">)</span></span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>                <span class="op">)</span></span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>        <span class="op">)</span></span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">build</span><span class="op">();</span></span></code></pre></div>
+        <hr />
+        <h2 id="custom-item-api">Custom Item API</h2>
+        <p>Create a custom item:</p>
+        <div class="sourceCode" id="cb59"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> MagicSwordItem <span class="kw">implements</span> CustomItem <span class="op">{</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="bu">String</span> <span class="fu">id</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="st">&quot;magic_sword&quot;</span><span class="op">;</span></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> ItemStack <span class="fu">create</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> ItemBuilder<span class="op">.</span><span class="fu">of</span><span class="op">(</span>Material<span class="op">.</span><span class="fu">DIAMOND_SWORD</span><span class="op">)</span></span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">name</span><span class="op">(</span>KaraUI<span class="op">.</span><span class="fu">gradient</span><span class="op">(</span><span class="st">&quot;Magic Sword&quot;</span><span class="op">,</span> <span class="st">&quot;#00ffaa&quot;</span><span class="op">,</span> <span class="st">&quot;#ff00ff&quot;</span><span class="op">))</span></span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">lore</span><span class="op">(</span><span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;A custom KaraAPI item.&quot;</span><span class="op">))</span></span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>                <span class="op">.</span><span class="fu">build</span><span class="op">();</span></span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb59-17"><a href="#cb59-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onAttack</span><span class="op">(</span>CustomItemAttack event<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb59-18"><a href="#cb59-18" aria-hidden="true" tabindex="-1"></a>        event<span class="op">.</span><span class="fu">damage</span><span class="op">(</span>event<span class="op">.</span><span class="fu">event</span><span class="op">().</span><span class="fu">getDamage</span><span class="op">()</span> <span class="op">+</span> <span class="fl">4.0</span><span class="op">);</span></span>
+<span id="cb59-19"><a href="#cb59-19" aria-hidden="true" tabindex="-1"></a>        event<span class="op">.</span><span class="fu">player</span><span class="op">().</span><span class="fu">sendMessage</span><span class="op">(</span><span class="bu">Component</span><span class="op">.</span><span class="fu">text</span><span class="op">(</span><span class="st">&quot;Magic hit!&quot;</span><span class="op">));</span></span>
+<span id="cb59-20"><a href="#cb59-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb59-21"><a href="#cb59-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>Register it:</p>
+        <div class="sourceCode" id="cb60"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">customItems</span><span class="op">().</span><span class="fu">register</span><span class="op">(</span><span class="kw">new</span> <span class="fu">MagicSwordItem</span><span class="op">());</span></span></code></pre></div>
+        <p>Give it to a player:</p>
+        <div class="sourceCode" id="cb61"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>player<span class="op">.</span><span class="fu">getInventory</span><span class="op">().</span><span class="fu">addItem</span><span class="op">(</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">customItems</span><span class="op">().</span><span class="fu">create</span><span class="op">(</span><span class="st">&quot;magic_sword&quot;</span><span class="op">)</span></span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <p>Check an item:</p>
+        <div class="sourceCode" id="cb62"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="dt">boolean</span> isMagicSword <span class="op">=</span> context<span class="op">.</span><span class="fu">customItems</span><span class="op">().</span><span class="fu">is</span><span class="op">(</span>item<span class="op">,</span> <span class="st">&quot;magic_sword&quot;</span><span class="op">);</span></span></code></pre></div>
+        <p>Custom items are tagged using
+        <code>ItemMeta#getPersistentDataContainer()</code>.</p>
+        <hr />
+        <h2 id="registry-api">Registry API</h2>
+        <p>Use <code>RegistryService</code> for ID-based object
+        registries.</p>
+        <div class="sourceCode" id="cb63"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>MutableRegistry<span class="op">&lt;</span><span class="bu">Menu</span><span class="op">&gt;</span> menus <span class="op">=</span> context<span class="op">.</span><span class="fu">registries</span><span class="op">().</span><span class="fu">getOrCreate</span><span class="op">(</span><span class="st">&quot;menus&quot;</span><span class="op">);</span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>menus<span class="op">.</span><span class="fu">register</span><span class="op">(</span><span class="st">&quot;shop&quot;</span><span class="op">,</span> shopMenu<span class="op">);</span></span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a><span class="bu">Menu</span> shop <span class="op">=</span> menus<span class="op">.</span><span class="fu">get</span><span class="op">(</span><span class="st">&quot;shop&quot;</span><span class="op">);</span></span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">menus</span><span class="op">().</span><span class="fu">open</span><span class="op">(</span>player<span class="op">,</span> shop<span class="op">);</span></span></code></pre></div>
+        <p>Create any custom registry:</p>
+        <div class="sourceCode" id="cb64"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>MutableRegistry<span class="op">&lt;</span>Ability<span class="op">&gt;</span> abilities <span class="op">=</span> context<span class="op">.</span><span class="fu">registries</span><span class="op">().</span><span class="fu">getOrCreate</span><span class="op">(</span><span class="st">&quot;abilities&quot;</span><span class="op">);</span></span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>abilities<span class="op">.</span><span class="fu">register</span><span class="op">(</span><span class="st">&quot;dash&quot;</span><span class="op">,</span> <span class="kw">new</span> <span class="fu">DashAbility</span><span class="op">());</span></span></code></pre></div>
+        <p>Do not confuse this with <code>ServiceContainer</code>.</p>
+        <pre class="text"><code>ServiceContainer = dependency/lifecycle services
+RegistryService  = ID-based registries for plugin content</code></pre>
+        <hr />
+        <h2 id="storage-api">Storage API</h2>
+        <p>Create a repository using YAML files.</p>
+        <p>Example data class:</p>
+        <div class="sourceCode" id="cb66"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">record</span> <span class="fu">PlayerData</span><span class="op">(</span></span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>        <span class="bu">UUID</span> id<span class="op">,</span></span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">int</span> coins</span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb66-5"><a href="#cb66-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>Codec:</p>
+        <div class="sourceCode" id="cb67"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>StorageCodec<span class="op">&lt;</span>PlayerData<span class="op">&gt;</span> codec <span class="op">=</span> <span class="kw">new</span> StorageCodec<span class="op">&lt;&gt;()</span> <span class="op">{</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">write</span><span class="op">(</span>ConfigurationSection section<span class="op">,</span> PlayerData value<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>        section<span class="op">.</span><span class="fu">set</span><span class="op">(</span><span class="st">&quot;uuid&quot;</span><span class="op">,</span> value<span class="op">.</span><span class="fu">id</span><span class="op">().</span><span class="fu">toString</span><span class="op">());</span></span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>        section<span class="op">.</span><span class="fu">set</span><span class="op">(</span><span class="st">&quot;coins&quot;</span><span class="op">,</span> value<span class="op">.</span><span class="fu">coins</span><span class="op">());</span></span>
+<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-9"><a href="#cb67-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb67-10"><a href="#cb67-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> PlayerData <span class="fu">read</span><span class="op">(</span>ConfigurationSection section<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb67-11"><a href="#cb67-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="kw">new</span> <span class="fu">PlayerData</span><span class="op">(</span></span>
+<span id="cb67-12"><a href="#cb67-12" aria-hidden="true" tabindex="-1"></a>                <span class="bu">UUID</span><span class="op">.</span><span class="fu">fromString</span><span class="op">(</span>section<span class="op">.</span><span class="fu">getString</span><span class="op">(</span><span class="st">&quot;uuid&quot;</span><span class="op">)),</span></span>
+<span id="cb67-13"><a href="#cb67-13" aria-hidden="true" tabindex="-1"></a>                section<span class="op">.</span><span class="fu">getInt</span><span class="op">(</span><span class="st">&quot;coins&quot;</span><span class="op">)</span></span>
+<span id="cb67-14"><a href="#cb67-14" aria-hidden="true" tabindex="-1"></a>        <span class="op">);</span></span>
+<span id="cb67-15"><a href="#cb67-15" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb67-16"><a href="#cb67-16" aria-hidden="true" tabindex="-1"></a><span class="op">};</span></span></code></pre></div>
+        <p>Repository:</p>
+        <div class="sourceCode" id="cb68"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>Repository<span class="op">&lt;</span><span class="bu">UUID</span><span class="op">,</span> PlayerData<span class="op">&gt;</span> repository <span class="op">=</span> context<span class="op">.</span><span class="fu">storage</span><span class="op">().</span><span class="fu">yamlRepository</span><span class="op">(</span></span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;profiles&quot;</span><span class="op">,</span></span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;profiles&quot;</span><span class="op">,</span></span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">UUID</span><span class="op">::</span>toString<span class="op">,</span></span>
+<span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">UUID</span><span class="op">::</span>fromString<span class="op">,</span></span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a>        codec</span>
+<span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <p>Save/load:</p>
+        <div class="sourceCode" id="cb69"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>repository<span class="op">.</span><span class="fu">save</span><span class="op">(</span>player<span class="op">.</span><span class="fu">getUniqueId</span><span class="op">(),</span> <span class="kw">new</span> <span class="fu">PlayerData</span><span class="op">(</span>player<span class="op">.</span><span class="fu">getUniqueId</span><span class="op">(),</span> <span class="dv">100</span><span class="op">));</span></span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>PlayerData data <span class="op">=</span> repository<span class="op">.</span><span class="fu">load</span><span class="op">(</span>player<span class="op">.</span><span class="fu">getUniqueId</span><span class="op">())</span></span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">orElse</span><span class="op">(</span><span class="kw">new</span> <span class="fu">PlayerData</span><span class="op">(</span>player<span class="op">.</span><span class="fu">getUniqueId</span><span class="op">(),</span> <span class="dv">0</span><span class="op">));</span></span></code></pre></div>
+        <p>Files are stored under:</p>
+        <pre class="text"><code>plugins/YourPlugin/profiles/&lt;uuid&gt;.yml</code></pre>
+        <hr />
+        <h2 id="profile-api">Profile API</h2>
+        <p>Profiles are cached objects backed by a repository.</p>
+        <div class="sourceCode" id="cb71"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>ProfileCache<span class="op">&lt;</span>PlayerData<span class="op">&gt;</span> profiles <span class="op">=</span> context<span class="op">.</span><span class="fu">profiles</span><span class="op">().</span><span class="fu">create</span><span class="op">(</span></span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;players&quot;</span><span class="op">,</span></span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>        repository<span class="op">,</span></span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>        uuid <span class="op">-&gt;</span> <span class="kw">new</span> <span class="fu">PlayerData</span><span class="op">(</span>uuid<span class="op">,</span> <span class="dv">0</span><span class="op">)</span></span>
+<span id="cb71-5"><a href="#cb71-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <p>Load:</p>
+        <div class="sourceCode" id="cb72"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a>PlayerData data <span class="op">=</span> profiles<span class="op">.</span><span class="fu">getOrLoad</span><span class="op">(</span>player<span class="op">.</span><span class="fu">getUniqueId</span><span class="op">());</span></span></code></pre></div>
+        <p>Save:</p>
+        <div class="sourceCode" id="cb73"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>profiles<span class="op">.</span><span class="fu">save</span><span class="op">(</span>player<span class="op">.</span><span class="fu">getUniqueId</span><span class="op">());</span></span></code></pre></div>
+        <p>Save and unload:</p>
+        <div class="sourceCode" id="cb74"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a>profiles<span class="op">.</span><span class="fu">saveAndUnload</span><span class="op">(</span>player<span class="op">.</span><span class="fu">getUniqueId</span><span class="op">());</span></span></code></pre></div>
+        <p>Save all on shutdown:</p>
+        <div class="sourceCode" id="cb75"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>profiles<span class="op">.</span><span class="fu">saveAll</span><span class="op">();</span></span></code></pre></div>
+        <p><code>ProfileService</code> automatically saves and unloads
+        profile caches when KaraAPI shuts down.</p>
+        <hr />
+        <h2 id="requirement-api">Requirement API</h2>
+        <p>Requirements are reusable checks for commands, menus, items,
+        regions, abilities, and actions.</p>
+        <div class="sourceCode" id="cb76"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>Requirement<span class="op">&lt;</span>Player<span class="op">&gt;</span> canUse <span class="op">=</span> Requirements<span class="op">.</span><span class="fu">all</span><span class="op">(</span></span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>        Requirements<span class="op">.</span><span class="fu">world</span><span class="op">(</span><span class="st">&quot;world&quot;</span><span class="op">),</span></span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>        Requirements<span class="op">.</span><span class="fu">predicate</span><span class="op">(</span></span>
+<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>                player <span class="op">-&gt;</span> player<span class="op">.</span><span class="fu">getLevel</span><span class="op">()</span> <span class="op">&gt;=</span> <span class="dv">10</span><span class="op">,</span></span>
+<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;You need level 10.&quot;</span></span>
+<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">)</span></span>
+<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb76-8"><a href="#cb76-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-9"><a href="#cb76-9" aria-hidden="true" tabindex="-1"></a>RequirementResult result <span class="op">=</span> canUse<span class="op">.</span><span class="fu">check</span><span class="op">(</span>player<span class="op">);</span></span>
+<span id="cb76-10"><a href="#cb76-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb76-11"><a href="#cb76-11" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>result<span class="op">.</span><span class="fu">denied</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb76-12"><a href="#cb76-12" aria-hidden="true" tabindex="-1"></a>    player<span class="op">.</span><span class="fu">sendMessage</span><span class="op">(</span>result<span class="op">.</span><span class="fu">message</span><span class="op">());</span></span>
+<span id="cb76-13"><a href="#cb76-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span><span class="op">;</span></span>
+<span id="cb76-14"><a href="#cb76-14" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>Register reusable requirements:</p>
+        <div class="sourceCode" id="cb77"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">requirements</span><span class="op">().</span><span class="fu">register</span><span class="op">(</span></span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;level_10&quot;</span><span class="op">,</span></span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>        Requirements<span class="op">.</span><span class="fu">predicate</span><span class="op">(</span></span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>                player <span class="op">-&gt;</span> player<span class="op">.</span><span class="fu">getLevel</span><span class="op">()</span> <span class="op">&gt;=</span> <span class="dv">10</span><span class="op">,</span></span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>                <span class="st">&quot;You need level 10.&quot;</span></span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">)</span></span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <p>Retrieve:</p>
+        <div class="sourceCode" id="cb78"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>Requirement<span class="op">&lt;</span>Player<span class="op">&gt;</span> level10 <span class="op">=</span> context<span class="op">.</span><span class="fu">requirements</span><span class="op">().</span><span class="fu">get</span><span class="op">(</span><span class="st">&quot;level_10&quot;</span><span class="op">);</span></span></code></pre></div>
+        <hr />
+        <h2 id="region-api">Region API</h2>
+        <p>Register a cuboid region:</p>
+        <div class="sourceCode" id="cb79"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Region</span> spawn <span class="op">=</span> <span class="kw">new</span> <span class="fu">CuboidRegion</span><span class="op">(</span></span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;spawn&quot;</span><span class="op">,</span></span>
+<span id="cb79-3"><a href="#cb79-3" aria-hidden="true" tabindex="-1"></a>        firstLocation<span class="op">,</span></span>
+<span id="cb79-4"><a href="#cb79-4" aria-hidden="true" tabindex="-1"></a>        secondLocation</span>
+<span id="cb79-5"><a href="#cb79-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb79-6"><a href="#cb79-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb79-7"><a href="#cb79-7" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">regions</span><span class="op">().</span><span class="fu">register</span><span class="op">(</span>spawn<span class="op">);</span></span></code></pre></div>
+        <p>Check if a player is inside:</p>
+        <div class="sourceCode" id="cb80"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb80-1"><a href="#cb80-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>context<span class="op">.</span><span class="fu">regions</span><span class="op">().</span><span class="fu">contains</span><span class="op">(</span><span class="st">&quot;spawn&quot;</span><span class="op">,</span> player<span class="op">.</span><span class="fu">getLocation</span><span class="op">()))</span> <span class="op">{</span></span>
+<span id="cb80-2"><a href="#cb80-2" aria-hidden="true" tabindex="-1"></a>    player<span class="op">.</span><span class="fu">sendMessage</span><span class="op">(</span><span class="st">&quot;You are in spawn.&quot;</span><span class="op">);</span></span>
+<span id="cb80-3"><a href="#cb80-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <p>Get regions at a location:</p>
+        <div class="sourceCode" id="cb81"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="bu">List</span><span class="op">&lt;</span><span class="bu">Region</span><span class="op">&gt;</span> regions <span class="op">=</span> context<span class="op">.</span><span class="fu">regions</span><span class="op">().</span><span class="fu">at</span><span class="op">(</span>player<span class="op">.</span><span class="fu">getLocation</span><span class="op">());</span></span></code></pre></div>
+        <p>Get players inside:</p>
+        <div class="sourceCode" id="cb82"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="bu">List</span><span class="op">&lt;</span>Player<span class="op">&gt;</span> players <span class="op">=</span> context<span class="op">.</span><span class="fu">regions</span><span class="op">().</span><span class="fu">playersInside</span><span class="op">(</span><span class="st">&quot;spawn&quot;</span><span class="op">);</span></span></code></pre></div>
+        <p>Random location:</p>
+        <div class="sourceCode" id="cb83"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Location</span> random <span class="op">=</span> context<span class="op">.</span><span class="fu">regions</span><span class="op">().</span><span class="fu">randomLocation</span><span class="op">(</span><span class="st">&quot;spawn&quot;</span><span class="op">);</span></span>
+<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>player<span class="op">.</span><span class="fu">teleport</span><span class="op">(</span>random<span class="op">);</span></span></code></pre></div>
+        <p>Sphere region:</p>
+        <div class="sourceCode" id="cb84"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Region</span> arena <span class="op">=</span> <span class="kw">new</span> <span class="fu">SphereRegion</span><span class="op">(</span></span>
+<span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>        <span class="st">&quot;arena&quot;</span><span class="op">,</span></span>
+<span id="cb84-3"><a href="#cb84-3" aria-hidden="true" tabindex="-1"></a>        centerLocation<span class="op">,</span></span>
+<span id="cb84-4"><a href="#cb84-4" aria-hidden="true" tabindex="-1"></a>        <span class="fl">25.0</span></span>
+<span id="cb84-5"><a href="#cb84-5" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span>
+<span id="cb84-6"><a href="#cb84-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb84-7"><a href="#cb84-7" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">regions</span><span class="op">().</span><span class="fu">register</span><span class="op">(</span>arena<span class="op">);</span></span></code></pre></div>
+        <hr />
+        <h2 id="listener-registration">Listener Registration</h2>
+        <p>Register Bukkit listeners through KaraAPI:</p>
+        <div class="sourceCode" id="cb85"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> ListenerModule <span class="kw">implements</span> PluginModule <span class="op">{</span></span>
+<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb85-3"><a href="#cb85-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb85-4"><a href="#cb85-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">configure</span><span class="op">(</span>BootstrapContext context<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb85-5"><a href="#cb85-5" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">listeners</span><span class="op">().</span><span class="fu">register</span><span class="op">(</span><span class="kw">new</span> <span class="fu">JoinListener</span><span class="op">());</span></span>
+<span id="cb85-6"><a href="#cb85-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb85-7"><a href="#cb85-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <div class="sourceCode" id="cb86"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> JoinListener <span class="kw">implements</span> Listener <span class="op">{</span></span>
+<span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb86-3"><a href="#cb86-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@EventHandler</span></span>
+<span id="cb86-4"><a href="#cb86-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onJoin</span><span class="op">(</span>PlayerJoinEvent event<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb86-5"><a href="#cb86-5" aria-hidden="true" tabindex="-1"></a>        event<span class="op">.</span><span class="fu">getPlayer</span><span class="op">().</span><span class="fu">sendMessage</span><span class="op">(</span><span class="st">&quot;Welcome.&quot;</span><span class="op">);</span></span>
+<span id="cb86-6"><a href="#cb86-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb86-7"><a href="#cb86-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <hr />
+        <h2 id="startup-messages">Startup Messages</h2>
+        <p><code>StartupAnnouncer</code> uses the host plugin’s name,
+        version, and authors, not KaraAPI’s.</p>
+        <p>So if <code>ExamplePlugin</code> uses KaraAPI, startup logs
+        say:</p>
+        <pre class="text"><code>ExamplePlugin is starting...
+Version: 1.0.0
+Authors: Kerix
+Powered by KaraAPI</code></pre>
+        <p>This is intentional:</p>
+        <pre class="text"><code>KaraAPI provides the runtime.
+The host plugin owns the startup identity.</code></pre>
+        <hr />
+        <h2 id="paper-adapter-layer">Paper Adapter Layer</h2>
+        <p>KaraAPI keeps raw Bukkit/Paper calls in the
+        <code>paper</code> package.</p>
+        <p>Examples:</p>
+        <pre class="text"><code>paper.command.PaperCommandRegistrar
+paper.listener.PaperListenerRegistrar
+paper.scheduler.PaperScheduler
+paper.inventory.PaperMenuListener
+paper.item.PaperCustomItemListener
+paper.placeholder.PlaceholderApiProvider
+paper.scoreboard.PaperSidebarRenderer
+paper.text.Mini
+paper.text.PaperText</code></pre>
+        <p>Host plugins generally should not import these directly.</p>
+        <hr />
+        <h2 id="internal-package">Internal Package</h2>
+        <p>The <code>internal</code> package contains private
+        helpers:</p>
+        <pre class="text"><code>internal.validate.Preconditions
+internal.util.Strings
+internal.util.Ticks
+internal.collection.IdentitySets
+internal.debug.DebugTimer</code></pre>
+        <p>These are not part of the public API.</p>
+        <hr />
+        <h2
+        id="recommended-module-structure-for-host-plugins">Recommended
+        Module Structure for Host Plugins</h2>
+        <pre class="text"><code>com.example.exampleplugin
+├── ExamplePlugin.java
+├── CoreModule.java
+├── CommandModule.java
+├── ListenerModule.java
+├── MessageModule.java
+├── PlaceholderModule.java
+├── ItemModule.java
+├── ProfileModule.java
+└── RegionModule.java</code></pre>
+        <p>Example boot:</p>
+        <div class="sourceCode" id="cb92"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb92-1"><a href="#cb92-1" aria-hidden="true" tabindex="-1"></a><span class="kw">this</span><span class="op">.</span><span class="fu">handle</span> <span class="op">=</span> KaraAPI<span class="op">.</span><span class="fu">boot</span><span class="op">(</span></span>
+<span id="cb92-2"><a href="#cb92-2" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">,</span></span>
+<span id="cb92-3"><a href="#cb92-3" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> <span class="fu">CoreModule</span><span class="op">(),</span></span>
+<span id="cb92-4"><a href="#cb92-4" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> <span class="fu">CommandModule</span><span class="op">(),</span></span>
+<span id="cb92-5"><a href="#cb92-5" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> <span class="fu">ListenerModule</span><span class="op">(),</span></span>
+<span id="cb92-6"><a href="#cb92-6" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> <span class="fu">PlaceholderModule</span><span class="op">(),</span></span>
+<span id="cb92-7"><a href="#cb92-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> <span class="fu">ItemModule</span><span class="op">(),</span></span>
+<span id="cb92-8"><a href="#cb92-8" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> <span class="fu">ProfileModule</span><span class="op">(),</span></span>
+<span id="cb92-9"><a href="#cb92-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">new</span> <span class="fu">RegionModule</span><span class="op">()</span></span>
+<span id="cb92-10"><a href="#cb92-10" aria-hidden="true" tabindex="-1"></a><span class="op">);</span></span></code></pre></div>
+        <hr />
+        
+        <hr />
+        <h2 id="event-bus">Event Bus</h2>
+        <p>The Event Bus is for internal KaraAPI or host-plugin events that
+        do not need to be Bukkit events.</p>
+        <p>It is useful for decoupling systems such as profiles, abilities,
+        custom items, menus, storage, and gameplay logic.</p>
+        <div class="sourceCode" id="cb-event-1"><pre
+        class="sourceCode java"><code class="sourceCode java">public record ProfileLoadedEvent(Player player, PlayerData data) {
+}</code></pre></div>
+        <div class="sourceCode" id="cb-event-2"><pre
+        class="sourceCode java"><code class="sourceCode java">context.events().subscribe(ProfileLoadedEvent.class, event -> {
+    event.player().sendMessage("Profile loaded.");
+});
+
+context.events().publish(new ProfileLoadedEvent(player, data));</code></pre></div>
+        <h3 id="cancellable-event-bus-events">Cancellable Event Bus Events</h3>
+        <div class="sourceCode" id="cb-event-3"><pre
+        class="sourceCode java"><code class="sourceCode java">public final class AbilityUseEvent implements CancellableKaraEvent {
+
+    private boolean cancelled;
+
+    @Override
+    public boolean cancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void cancelled(boolean cancelled) {
+        this.cancelled = cancelled;
+    }
+}</code></pre></div>
+
+        <hr />
+        <h2 id="typed-command-arguments">Typed Command Arguments</h2>
+        <p>Typed command arguments let you parse command input into real
+        Java/Bukkit types such as players, worlds, materials, numbers,
+        booleans, and enums.</p>
+        <div class="sourceCode" id="cb-typed-1"><pre
+        class="sourceCode java"><code class="sourceCode java">ArgumentSchema giveArgs = ArgumentSchema.create()
+        .required("target", Arguments.player())
+        .required("amount", Arguments.integer());
+
+context.commands().register(
+        KaraCommands.command("givecoins")
+                .playerOnly()
+                .executes(ctx -> {
+                    ParsedArguments args = ctx.parse(giveArgs);
+
+                    Player target = args.get("target");
+                    int amount = args.integer("amount");
+
+                    target.sendMessage("You received " + amount + " coins.");
+                    return CommandResult.success();
+                })
+                .build()
+);</code></pre></div>
+        <p>Built-in argument types:</p>
+        <div class="sourceCode" id="cb-typed-2"><pre
+        class="sourceCode text"><code class="sourceCode text">Arguments.string()
+Arguments.integer()
+Arguments.longNumber()
+Arguments.decimal()
+Arguments.bool()
+Arguments.player()
+Arguments.world()
+Arguments.material()
+Arguments.enumType(MyEnum.class)</code></pre></div>
+
+        <hr />
+        <h2 id="effect-api">Effect API</h2>
+        <p>The Effect API lets you create reusable visual/audio feedback
+        such as sounds, particles, messages, action bars, titles, and
+        composite effects.</p>
+        <div class="sourceCode" id="cb-effect-1"><pre
+        class="sourceCode java"><code class="sourceCode java">context.effects().play(
+        player,
+        Effects.all(
+                Effects.sound(Sound.ENTITY_PLAYER_LEVELUP),
+                Effects.particle(Particle.HAPPY_VILLAGER),
+                Effects.actionBar(KaraUI.gradient("Level Up!", "#00ffaa", "#ffff00"))
+        )
+);</code></pre></div>
+        <p>You can also play effects to multiple viewers at a location:</p>
+        <div class="sourceCode" id="cb-effect-2"><pre
+        class="sourceCode java"><code class="sourceCode java">context.effects().play(
+        location,
+        location.getWorld().getPlayers(),
+        Effects.particle(Particle.END_ROD, 40, 0.4, 0.8, 0.4, 0.02)
+);</code></pre></div>
+
+        <hr />
+        <h2 id="folia-scheduler-adapter">Folia Scheduler Adapter</h2>
+        <p><code>KaraScheduler</code> abstracts scheduling so KaraAPI can
+        use normal Bukkit scheduling on Paper and Folia schedulers on
+        Folia servers.</p>
+        <div class="sourceCode" id="cb-folia-1"><pre
+        class="sourceCode java"><code class="sourceCode java">context.scheduler().sync(() -> {
+    // global sync work
+});
+
+context.scheduler().at(player.getLocation(), () -> {
+    // location/region-owned work on Folia
+});
+
+context.scheduler().entity(player, () -> {
+    // entity-owned work on Folia
+});
+
+context.scheduler().async(() -> {
+    // async work
+});</code></pre></div>
+        <blockquote>
+        <p>On Folia, entity-owned work should use entity scheduling, and
+        location/region work should use region/location scheduling. Do not
+        treat Folia like normal Paper.</p>
+        </blockquote>
+
+        <hr />
+        <h2 id="recipe-api">Recipe API</h2>
+        <p>The Recipe API registers keyed recipes using
+        <code>NamespacedKey</code>. Recipes can be registered, removed, and
+        discovered for players.</p>
+        <h3 id="shaped-recipe">Shaped Recipe</h3>
+        <div class="sourceCode" id="cb-recipe-1"><pre
+        class="sourceCode java"><code class="sourceCode java">ItemStack result = ItemBuilder.of(Material.DIAMOND)
+        .name(KaraUI.gradient("Compressed Diamond", "#00ffff", "#ff00ff"))
+        .build();
+
+KaraRecipe recipe = ShapedRecipeBuilder.create(
+                RecipeKeys.of(context.hostPlugin(), "compressed_diamond"),
+                result
+        )
+        .shape("DDD", "DDD", "DDD")
+        .ingredient('D', Material.DIAMOND);
+
+context.recipes().register(recipe);</code></pre></div>
+        <h3 id="shapeless-recipe">Shapeless Recipe</h3>
+        <div class="sourceCode" id="cb-recipe-2"><pre
+        class="sourceCode java"><code class="sourceCode java">KaraRecipe recipe = ShapelessRecipeBuilder.create(
+                RecipeKeys.of(context.hostPlugin(), "magic_dust"),
+                ItemBuilder.of(Material.GLOWSTONE_DUST)
+                        .name(KaraUI.gradient("Magic Dust", "#ffaa00", "#ffff00"))
+                        .build()
+        )
+        .ingredient(Material.REDSTONE)
+        .ingredient(Material.GLOWSTONE_DUST);
+
+context.recipes().register(recipe);</code></pre></div>
+        <h3 id="custom-item-recipe">Custom Item Recipe</h3>
+        <div class="sourceCode" id="cb-recipe-3"><pre
+        class="sourceCode java"><code class="sourceCode java">ItemStack magicShard = context.customItems().create("magic_shard");
+
+KaraRecipe magicSwordRecipe = ShapedRecipeBuilder.create(
+                RecipeKeys.of(context.hostPlugin(), "magic_sword"),
+                context.customItems().create("magic_sword")
+        )
+        .shape(" S ", " S ", " B ")
+        .exact('S', magicShard)
+        .ingredient('B', Material.BLAZE_ROD);
+
+context.recipes().register(magicSwordRecipe);</code></pre></div>
+        <h3 id="recipe-discovery">Recipe Discovery</h3>
+        <div class="sourceCode" id="cb-recipe-4"><pre
+        class="sourceCode java"><code class="sourceCode java">context.recipes().discoverAll(player);</code></pre></div>
+
+        <hr />
+        <h2 id="runtime-binding-updates">Runtime Binding Updates</h2>
+        <p>After adding Event Bus, typed command arguments, Effect API,
+        Folia scheduler adapter, and Recipe API, your runtime should expose
+        the following services.</p>
+        <p>Add these fields to <code>PluginKernel</code>:</p>
+        <div class="sourceCode" id="cb-runtime-1"><pre
+        class="sourceCode java"><code class="sourceCode java">private final EventBus events;
+private final KaraScheduler scheduler;
+private final EffectService effects;
+private final RecipeService recipes;</code></pre></div>
+        <p>Initialize them:</p>
+        <div class="sourceCode" id="cb-runtime-2"><pre
+        class="sourceCode java"><code class="sourceCode java">this.events = new EventBus();
+this.scheduler = KaraSchedulers.create(hostPlugin);
+this.effects = new EffectService();
+this.recipes = new RecipeService(hostPlugin);</code></pre></div>
+        <p>Bind them:</p>
+        <div class="sourceCode" id="cb-runtime-3"><pre
+        class="sourceCode java"><code class="sourceCode java">services.bind(EventBus.class, events);
+services.bind(KaraScheduler.class, scheduler);
+services.bind(EffectService.class, effects);
+services.bind(RecipeService.class, recipes);</code></pre></div>
+        <p>Add them to <code>BootstrapContext</code>:</p>
+        <div class="sourceCode" id="cb-runtime-4"><pre
+        class="sourceCode java"><code class="sourceCode java">EventBus events,
+KaraScheduler scheduler,
+EffectService effects,
+RecipeService recipes</code></pre></div>
+        <p>Add getters to <code>PluginHandle</code>:</p>
+        <div class="sourceCode" id="cb-runtime-5"><pre
+        class="sourceCode java"><code class="sourceCode java">public EventBus events() {
+    return context.events();
+}
+
+public KaraScheduler scheduler() {
+    return context.scheduler();
+}
+
+public EffectService effects() {
+    return context.effects();
+}
+
+public RecipeService recipes() {
+    return context.recipes();
+}</code></pre></div>
+
+        <h2 id="best-practices">Best Practices</h2>
+        <h3 id="use-servicecontainer-for-services">Use
+        <code>ServiceContainer</code> for services</h3>
+        <div class="sourceCode" id="cb93"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb93-1"><a href="#cb93-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">services</span><span class="op">().</span><span class="fu">bind</span><span class="op">(</span>MyService<span class="op">.</span><span class="fu">class</span><span class="op">,</span> <span class="kw">new</span> <span class="fu">MyService</span><span class="op">());</span></span></code></pre></div>
+        <h3 id="use-registryservice-for-content-registries">Use
+        <code>RegistryService</code> for content registries</h3>
+        <div class="sourceCode" id="cb94"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">registries</span><span class="op">().</span><span class="fu">getOrCreate</span><span class="op">(</span><span class="st">&quot;abilities&quot;</span><span class="op">);</span></span></code></pre></div>
+        <h3 id="use-messageservice-for-rendered-components">Use
+        <code>MessageService</code> for rendered components</h3>
+        <div class="sourceCode" id="cb95"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">messages</span><span class="op">().</span><span class="fu">component</span><span class="op">(</span>player<span class="op">,</span> raw<span class="op">,</span> placeholders<span class="op">);</span></span></code></pre></div>
+        <h3 id="use-uiservice-for-output">Use <code>UiService</code> for
+        output</h3>
+        <div class="sourceCode" id="cb96"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">chat</span><span class="op">(</span>player<span class="op">,</span> raw<span class="op">,</span> placeholders<span class="op">);</span></span>
+<span id="cb96-2"><a href="#cb96-2" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">actionBar</span><span class="op">(</span>player<span class="op">,</span> raw<span class="op">,</span> placeholders<span class="op">);</span></span>
+<span id="cb96-3"><a href="#cb96-3" aria-hidden="true" tabindex="-1"></a>context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">title</span><span class="op">(</span>player<span class="op">,</span> title<span class="op">,</span> subtitle<span class="op">,</span> placeholders<span class="op">);</span></span></code></pre></div>
+        <h3 id="use-local-placeholders-for-your-own-messages">Use local
+        placeholders for your own messages</h3>
+        <div class="sourceCode" id="cb97"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a>PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;coins&quot;</span><span class="op">,</span> <span class="dv">250</span><span class="op">);</span></span></code></pre></div>
+        <h3 id="use-placeholderapi-only-for-external-placeholders">Use
+        PlaceholderAPI only for external placeholders</h3>
+        <pre class="text"><code>%player_name%
+%server_online%
+%vault_eco_balance%</code></pre>
+        <h3 id="use-closenexttick-and-opennexttick...-in-menus">Use
+        <code>closeNextTick()</code> and <code>openNextTick(...)</code>
+        in menus</h3>
+        <p>This avoids unsafe inventory changes during click events.</p>
+        <div class="sourceCode" id="cb99"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a>click<span class="op">.</span><span class="fu">closeNextTick</span><span class="op">();</span></span>
+<span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a>click<span class="op">.</span><span class="fu">openNextTick</span><span class="op">(</span>otherMenu<span class="op">);</span></span></code></pre></div>
+        <hr />
+        <h2 id="quick-full-example">Quick Full Example</h2>
+        <div class="sourceCode" id="cb100"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> ExamplePlugin <span class="kw">extends</span> JavaPlugin <span class="op">{</span></span>
+<span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-3"><a href="#cb100-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> PluginHandle handle<span class="op">;</span></span>
+<span id="cb100-4"><a href="#cb100-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-5"><a href="#cb100-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb100-6"><a href="#cb100-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onEnable</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb100-7"><a href="#cb100-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">handle</span> <span class="op">=</span> KaraAPI<span class="op">.</span><span class="fu">boot</span><span class="op">(</span></span>
+<span id="cb100-8"><a href="#cb100-8" aria-hidden="true" tabindex="-1"></a>                <span class="kw">this</span><span class="op">,</span></span>
+<span id="cb100-9"><a href="#cb100-9" aria-hidden="true" tabindex="-1"></a>                <span class="kw">new</span> <span class="fu">CoreModule</span><span class="op">(),</span></span>
+<span id="cb100-10"><a href="#cb100-10" aria-hidden="true" tabindex="-1"></a>                <span class="kw">new</span> <span class="fu">CommandModule</span><span class="op">()</span></span>
+<span id="cb100-11"><a href="#cb100-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">);</span></span>
+<span id="cb100-12"><a href="#cb100-12" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb100-13"><a href="#cb100-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb100-14"><a href="#cb100-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb100-15"><a href="#cb100-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">onDisable</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb100-16"><a href="#cb100-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">(</span>handle <span class="op">!=</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb100-17"><a href="#cb100-17" aria-hidden="true" tabindex="-1"></a>            handle<span class="op">.</span><span class="fu">shutdown</span><span class="op">();</span></span>
+<span id="cb100-18"><a href="#cb100-18" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb100-19"><a href="#cb100-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb100-20"><a href="#cb100-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <div class="sourceCode" id="cb101"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> CoreModule <span class="kw">implements</span> PluginModule <span class="op">{</span></span>
+<span id="cb101-2"><a href="#cb101-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb101-3"><a href="#cb101-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb101-4"><a href="#cb101-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">configure</span><span class="op">(</span>BootstrapContext context<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb101-5"><a href="#cb101-5" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">customItems</span><span class="op">().</span><span class="fu">register</span><span class="op">(</span><span class="kw">new</span> <span class="fu">MagicSwordItem</span><span class="op">());</span></span>
+<span id="cb101-6"><a href="#cb101-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb101-7"><a href="#cb101-7" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">regions</span><span class="op">().</span><span class="fu">register</span><span class="op">(</span></span>
+<span id="cb101-8"><a href="#cb101-8" aria-hidden="true" tabindex="-1"></a>                <span class="kw">new</span> <span class="fu">SphereRegion</span><span class="op">(</span></span>
+<span id="cb101-9"><a href="#cb101-9" aria-hidden="true" tabindex="-1"></a>                        <span class="st">&quot;spawn&quot;</span><span class="op">,</span></span>
+<span id="cb101-10"><a href="#cb101-10" aria-hidden="true" tabindex="-1"></a>                        context<span class="op">.</span><span class="fu">hostPlugin</span><span class="op">().</span><span class="fu">getServer</span><span class="op">().</span><span class="fu">getWorld</span><span class="op">(</span><span class="st">&quot;world&quot;</span><span class="op">).</span><span class="fu">getSpawnLocation</span><span class="op">(),</span></span>
+<span id="cb101-11"><a href="#cb101-11" aria-hidden="true" tabindex="-1"></a>                        <span class="fl">20.0</span></span>
+<span id="cb101-12"><a href="#cb101-12" aria-hidden="true" tabindex="-1"></a>                <span class="op">)</span></span>
+<span id="cb101-13"><a href="#cb101-13" aria-hidden="true" tabindex="-1"></a>        <span class="op">);</span></span>
+<span id="cb101-14"><a href="#cb101-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb101-15"><a href="#cb101-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <div class="sourceCode" id="cb102"><pre
+        class="sourceCode java"><code class="sourceCode java"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> CommandModule <span class="kw">implements</span> PluginModule <span class="op">{</span></span>
+<span id="cb102-2"><a href="#cb102-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb102-3"><a href="#cb102-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb102-4"><a href="#cb102-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">configure</span><span class="op">(</span>BootstrapContext context<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb102-5"><a href="#cb102-5" aria-hidden="true" tabindex="-1"></a>        context<span class="op">.</span><span class="fu">commands</span><span class="op">().</span><span class="fu">register</span><span class="op">(</span></span>
+<span id="cb102-6"><a href="#cb102-6" aria-hidden="true" tabindex="-1"></a>                KaraCommands<span class="op">.</span><span class="fu">command</span><span class="op">(</span><span class="st">&quot;example&quot;</span><span class="op">)</span></span>
+<span id="cb102-7"><a href="#cb102-7" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span><span class="fu">playerOnly</span><span class="op">()</span></span>
+<span id="cb102-8"><a href="#cb102-8" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span><span class="fu">then</span><span class="op">(</span>KaraCommands<span class="op">.</span><span class="fu">command</span><span class="op">(</span><span class="st">&quot;sword&quot;</span><span class="op">)</span></span>
+<span id="cb102-9"><a href="#cb102-9" aria-hidden="true" tabindex="-1"></a>                                <span class="op">.</span><span class="fu">executes</span><span class="op">(</span>ctx <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb102-10"><a href="#cb102-10" aria-hidden="true" tabindex="-1"></a>                                    ctx<span class="op">.</span><span class="fu">player</span><span class="op">().</span><span class="fu">getInventory</span><span class="op">().</span><span class="fu">addItem</span><span class="op">(</span></span>
+<span id="cb102-11"><a href="#cb102-11" aria-hidden="true" tabindex="-1"></a>                                            context<span class="op">.</span><span class="fu">customItems</span><span class="op">().</span><span class="fu">create</span><span class="op">(</span><span class="st">&quot;magic_sword&quot;</span><span class="op">)</span></span>
+<span id="cb102-12"><a href="#cb102-12" aria-hidden="true" tabindex="-1"></a>                                    <span class="op">);</span></span>
+<span id="cb102-13"><a href="#cb102-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb102-14"><a href="#cb102-14" aria-hidden="true" tabindex="-1"></a>                                    context<span class="op">.</span><span class="fu">ui</span><span class="op">().</span><span class="fu">chat</span><span class="op">(</span></span>
+<span id="cb102-15"><a href="#cb102-15" aria-hidden="true" tabindex="-1"></a>                                            ctx<span class="op">.</span><span class="fu">player</span><span class="op">(),</span></span>
+<span id="cb102-16"><a href="#cb102-16" aria-hidden="true" tabindex="-1"></a>                                            <span class="st">&quot;&lt;gradient:#00ffaa:#ff00ff&gt;Given magic sword to &lt;player&gt;&lt;/gradient&gt;&quot;</span><span class="op">,</span></span>
+<span id="cb102-17"><a href="#cb102-17" aria-hidden="true" tabindex="-1"></a>                                            PlaceholderSet<span class="op">.</span><span class="fu">empty</span><span class="op">().</span><span class="fu">add</span><span class="op">(</span><span class="st">&quot;player&quot;</span><span class="op">,</span> ctx<span class="op">.</span><span class="fu">player</span><span class="op">().</span><span class="fu">getName</span><span class="op">())</span></span>
+<span id="cb102-18"><a href="#cb102-18" aria-hidden="true" tabindex="-1"></a>                                    <span class="op">);</span></span>
+<span id="cb102-19"><a href="#cb102-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb102-20"><a href="#cb102-20" aria-hidden="true" tabindex="-1"></a>                                    <span class="cf">return</span> CommandResult<span class="op">.</span><span class="fu">success</span><span class="op">();</span></span>
+<span id="cb102-21"><a href="#cb102-21" aria-hidden="true" tabindex="-1"></a>                                <span class="op">}))</span></span>
+<span id="cb102-22"><a href="#cb102-22" aria-hidden="true" tabindex="-1"></a>                        <span class="op">.</span><span class="fu">build</span><span class="op">()</span></span>
+<span id="cb102-23"><a href="#cb102-23" aria-hidden="true" tabindex="-1"></a>        <span class="op">);</span></span>
+<span id="cb102-24"><a href="#cb102-24" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb102-25"><a href="#cb102-25" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+        <hr />
+        <h2 id="license">License</h2>
+        <pre class="text"><code>MIT License
+Copyright (c) 2026 OraKerix
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</code></pre>
+        <hr />
+        <h2 id="credits">Credits</h2>
+        <p>Created by Kerix.</p>
+        <p>Powered by Paper, Adventure, MiniMessage, and optionally
+        PlaceholderAPI.</p>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <div>KaraAPI documentation generated as a full HTML README page.</div>
+    </footer>
+  </div>
+</body>
+</html>
