@@ -1,0 +1,101 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "org.kerix",
+    "module": "karaapi",
+    "version": "1.1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.3.0"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api"
+      },
+      "files": [
+        {
+          "name": "karaapi-1.1.0-thin.jar",
+          "url": "karaapi-1.1.0-thin.jar",
+          "size": 264047,
+          "sha512": "bddbfd886281f05e6691e8ea0ae90bc7f2bab736e3ce71b075a8c10b70a548ba715e8116a6f0ca689367f9d940f9056dc2661b2cd9f5de8a3f6e5bd3f75a5b3f",
+          "sha256": "b7ba5aa95dbafa8f4ec0d47abd1d4b620357d5e28a829c946a8b00b45638d028",
+          "sha1": "28a38fe92e74334c8dbd0b462de77101851c1fba",
+          "md5": "607a27a5a78c5c686262ee0f68ea7fe8"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "karaapi-1.1.0-thin.jar",
+          "url": "karaapi-1.1.0-thin.jar",
+          "size": 264047,
+          "sha512": "bddbfd886281f05e6691e8ea0ae90bc7f2bab736e3ce71b075a8c10b70a548ba715e8116a6f0ca689367f9d940f9056dc2661b2cd9f5de8a3f6e5bd3f75a5b3f",
+          "sha256": "b7ba5aa95dbafa8f4ec0d47abd1d4b620357d5e28a829c946a8b00b45638d028",
+          "sha1": "28a38fe92e74334c8dbd0b462de77101851c1fba",
+          "md5": "607a27a5a78c5c686262ee0f68ea7fe8"
+        }
+      ]
+    },
+    {
+      "name": "sourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "karaapi-1.1.0-sources.jar",
+          "url": "karaapi-1.1.0-sources.jar",
+          "size": 119888,
+          "sha512": "33241a8024ac936a7265e378888a06e7cb07a9c911fca9ed9638caa955e236644bf07975fc311188fa1a0c43fa3ffec03d5d5842320b8817ac9529d7f1ae2cfb",
+          "sha256": "c53359f0c23c365ef63e2bab2c81d237533283dad0e793086d4e3c6a002a315b",
+          "sha1": "bfb9cba6cf66500545d2f1114663cc60d575e531",
+          "md5": "a30893a296f079abc1e00146eed20eb7"
+        }
+      ]
+    },
+    {
+      "name": "shadowRuntimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "shadowed",
+        "org.gradle.jvm.version": 21,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "karaapi-1.1.0.jar",
+          "url": "karaapi-1.1.0.jar",
+          "size": 267759,
+          "sha512": "faf2229d01cb3240753172296cae4313f81a8150652e6d91049802b07876e1d3af350bd3ccd3ce8414d617641ca97744a341b9aed23472eef0a1d8d83aa99eb7",
+          "sha256": "2debf0f99525c905d40321272542328786c60b1fbec4a4b2e588b17db1bf0958",
+          "sha1": "d2a3bba3c344210025a3c78159979f5d413d9ad2",
+          "md5": "172f102c5a3f8ab752ff63d431d2dda9"
+        }
+      ]
+    }
+  ]
+}
