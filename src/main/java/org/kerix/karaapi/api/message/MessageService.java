@@ -32,7 +32,7 @@ public final class MessageService implements Stoppable {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
         this.configs = Objects.requireNonNull(configs, "configs");
         this.placeholders = Objects.requireNonNull(placeholders, "placeholders");
-        this.renderer = new ComponentRenderer(placeholders);
+        this.renderer = new ComponentRenderer(placeholders, this::prefixRaw);
     }
 
     public MessageBundle main() {
@@ -154,5 +154,9 @@ public final class MessageService implements Stoppable {
         }
 
         return normalized;
+    }
+
+    private String prefixRaw() {
+        return main().raw(Messages.PREFIX.key());
     }
 }

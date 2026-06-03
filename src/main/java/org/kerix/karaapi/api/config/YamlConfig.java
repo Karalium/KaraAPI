@@ -11,6 +11,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 
+import static org.kerix.karaapi.api.config.ConfigService.getString;
+
 public final class YamlConfig {
 
     private final JavaPlugin hostPlugin;
@@ -136,6 +138,17 @@ public final class YamlConfig {
         key.type().write(yaml, key.path(), value);
     }
 
+    public boolean setIfMissing(String path, Object value) {
+        Objects.requireNonNull(path, "path");
+
+        if (yaml.isSet(path)) {
+            return false;
+        }
+
+        yaml.set(path, value);
+        return true;
+    }
+
     public ConfigurationSection section(String path) {
         ConfigurationSection section = yaml.getConfigurationSection(path);
 
@@ -198,19 +211,7 @@ public final class YamlConfig {
     }
 
     private static String normalizeFileName(String fileName) {
-        Objects.requireNonNull(fileName, "fileName");
-
-        String normalized = fileName.trim().replace("\\", "/");
-
-        if (normalized.isBlank()) {
-            throw new IllegalArgumentException("Config file name cannot be blank.");
-        }
-
-        if (!normalized.endsWith(".yml") && !normalized.endsWith(".yaml")) {
-            normalized += ".yml";
-        }
-
-        return normalized;
+        return getString(fileName);
     }
 
     private static String normalizeResourcePath(String resourcePath) {

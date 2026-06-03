@@ -1,6 +1,7 @@
 package org.kerix.karaapi.api.config;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jspecify.annotations.NonNull;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 
 import java.util.Collection;
@@ -66,7 +67,6 @@ public final class ConfigService implements Stoppable {
 
     @Override
     public void stop() {
-        saveAll();
         configs.clear();
     }
 
@@ -75,9 +75,18 @@ public final class ConfigService implements Stoppable {
     }
 
     private static String normalizeKey(String fileName) {
+        return getString(fileName);
+    }
+
+    @NonNull
+    static String getString(String fileName) {
         Objects.requireNonNull(fileName, "fileName");
 
         String normalized = fileName.trim().replace("\\", "/");
+
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("Config file name cannot be blank.");
+        }
 
         if (!normalized.endsWith(".yml") && !normalized.endsWith(".yaml")) {
             normalized += ".yml";

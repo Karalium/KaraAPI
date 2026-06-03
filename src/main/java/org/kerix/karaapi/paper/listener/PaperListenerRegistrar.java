@@ -1,9 +1,13 @@
 package org.kerix.karaapi.paper.listener;
 
+import org.bukkit.event.Event;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.event.EventPriority;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public record PaperListenerRegistrar(JavaPlugin hostPlugin) {
 
@@ -25,5 +29,43 @@ public record PaperListenerRegistrar(JavaPlugin hostPlugin) {
         for (Listener listener : listeners) {
             register(listener);
         }
+    }
+
+    public <E extends Event> void listen(
+            Class<E> eventType,
+            Consumer<E> handler
+    ) {
+        listen(eventType, EventPriority.NORMAL, false, handler);
+    }
+
+    public <E extends Event> void listen(
+            Class<E> eventType,
+            EventPriority priority,
+            boolean ignoreCancelled,
+            Consumer<E> handler
+    ) {
+        Objects.requireNonNull(eventType, "eventType");
+        Objects.requireNonNull(priority, "priority");
+        Objects.requireNonNull(handler, "handler");
+
+        Listener listener = new Listener() {
+        };
+
+        EventExecutor executor = (registeredListener, event) -> {
+            if (!eventType.isInstance(event)) {
+                return;
+            }
+
+            handler.accept(eventType.cast(event));
+        };
+
+        hostPlugin.getServer().getPluginManager().registerEvent(
+                eventType,
+                listener,
+                priority,
+                executor,
+                hostPlugin,
+                ignoreCancelled
+        );
     }
 }

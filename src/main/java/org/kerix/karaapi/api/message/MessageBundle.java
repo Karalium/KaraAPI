@@ -52,10 +52,7 @@ public final class MessageBundle {
     }
 
     public String plain(OfflinePlayer player, MessageKey key, PlaceholderSet set) {
-        String raw = raw(key);
-        String prefixed = raw.replace("<prefix>", raw(Messages.PREFIX));
-
-        return renderer.plain(player, prefixed, set);
+        return renderer.plain(player, raw(key), set);
     }
 
     public Component component(MessageKey key) {
@@ -71,7 +68,7 @@ public final class MessageBundle {
     }
 
     public Component component(OfflinePlayer player, MessageKey key, PlaceholderSet set) {
-        return renderer.component(player, plain(player, key, set), PlaceholderSet.empty());
+        return renderer.component(player, raw(key), set);
     }
 
     public Component render(OfflinePlayer player, String raw, PlaceholderSet set) {

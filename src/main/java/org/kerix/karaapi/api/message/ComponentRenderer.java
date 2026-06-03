@@ -9,11 +9,19 @@ import org.kerix.karaapi.api.placeholder.PlaceholderSet;
 import org.kerix.karaapi.paper.text.Mini;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
-public record ComponentRenderer(PlaceholderService placeholders) {
+public final class ComponentRenderer {
 
-    public ComponentRenderer(PlaceholderService placeholders) {
+    private final PlaceholderService placeholders;
+    private final Supplier<String> prefixSupplier;
+
+    public ComponentRenderer(
+            PlaceholderService placeholders,
+            Supplier<String> prefixSupplier
+    ) {
         this.placeholders = Objects.requireNonNull(placeholders, "placeholders");
+        this.prefixSupplier = Objects.requireNonNull(prefixSupplier, "prefixSupplier");
     }
 
     public String plain(String raw) {
@@ -25,11 +33,18 @@ public record ComponentRenderer(PlaceholderService placeholders) {
     }
 
     public String plain(OfflinePlayer player, String raw, PlaceholderSet set) {
-        return placeholders.apply(player, raw, set);
+        PlaceholderSet merged = defaults(set);
+
+        return placeholders.apply(player, raw, merged);
     }
 
     public String plain(PlaceholderContext context, String raw) {
-        return placeholders.apply(context, raw);
+        PlaceholderSet merged = defaults(context.placeholders());
+
+        return placeholders.apply(
+                PlaceholderContext.of(context.player(), merged),
+                raw
+        );
     }
 
     public Component component(String raw) {
@@ -48,11 +63,6 @@ public record ComponentRenderer(PlaceholderService placeholders) {
         return Mini.parse(plain(context, raw));
     }
 
-    /**
-     * Use this when the whole rendered text should become a gradient.
-     * <p>
-     * This resolves placeholders first, then applies your ColorGradient API.
-     */
     public Component gradient(
             String raw,
             String... colors
@@ -79,19 +89,18 @@ public record ComponentRenderer(PlaceholderService placeholders) {
         return ColorGradient.of(colors).component(resolved);
     }
 
-    /**
-     * Use this when the text itself contains MiniMessage tags like:
-     *
-     * <green>Hello</green>
-     * <gradient:#00ffaa:#ff00ff>Hello</gradient>
-     * <p>
-     * Placeholders are resolved first, MiniMessage tags are parsed after.
-     */
-    public Component mini(
-            OfflinePlayer player,
-            String raw,
-            PlaceholderSet set
-    ) {
-        return component(player, raw, set);
+    public PlaceholderService placeholders() {
+        return placeholders;
+    }
+
+    private PlaceholderSet defaults(PlaceholderSet set) {
+        PlaceholderSet merged = PlaceholderSet.empty()
+                .add("prefix", prefixSupplier.get());
+
+        if (set != null) {
+            merged.addAll(set);
+        }
+
+        return merged;
     }
 }
