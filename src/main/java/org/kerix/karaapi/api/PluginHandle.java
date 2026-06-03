@@ -2,6 +2,7 @@ package org.kerix.karaapi.api;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.bootstrap.BootstrapContext;
+import org.kerix.karaapi.api.effect.EffectService;
 import org.kerix.karaapi.api.event.EventBus;
 import org.kerix.karaapi.api.item.custom.CustomItemService;
 import org.kerix.karaapi.api.menu.MenuService;
@@ -132,6 +133,9 @@ public final class PluginHandle {
 
     public RecipeService recipes() {
         return context.recipes();
+    }
+    public EffectService effects(){
+        return context.effects();
     }
 
     public boolean isShutdown() {

@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.bootstrap.BootstrapContext;
 import org.kerix.karaapi.api.bootstrap.PluginModule;
 import org.kerix.karaapi.api.config.ConfigService;
+import org.kerix.karaapi.api.effect.EffectService;
 import org.kerix.karaapi.api.event.EventBus;
 import org.kerix.karaapi.api.item.custom.CustomItemService;
 import org.kerix.karaapi.api.menu.MenuService;
@@ -60,6 +61,7 @@ public final class PluginKernel {
     private final EventBus events;
     private final KaraScheduler scheduler;
     private final RecipeService recipes;
+    private final EffectService effects;
 
     private final BootstrapContext context;
 
@@ -98,6 +100,7 @@ public final class PluginKernel {
         this.events = new EventBus();
         this.scheduler = KaraSchedulers.create(hostPlugin);
         this.recipes = new RecipeService(hostPlugin);
+        this.effects= new EffectService(hostPlugin);
 
         this.context = new BootstrapContext(
                 apiPlugin,
@@ -127,7 +130,8 @@ public final class PluginKernel {
 
                 events,
                 scheduler,
-                recipes
+                recipes,
+                effects
         );
 
         bindCoreServices();
@@ -155,6 +159,7 @@ public final class PluginKernel {
         services.bind(EventBus.class, events);
         services.bind(KaraScheduler.class, scheduler);
         services.bind(RecipeService.class, recipes);
+        services.bind(EffectService.class , effects);
 
         services.bind(StartupProfile.class, profile);
         services.bind(StartupAnnouncer.class, announcer);

@@ -2,6 +2,7 @@ package org.kerix.karaapi.api.bootstrap;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.config.ConfigService;
+import org.kerix.karaapi.api.effect.EffectService;
 import org.kerix.karaapi.api.event.EventBus;
 import org.kerix.karaapi.api.item.custom.CustomItemService;
 import org.kerix.karaapi.api.menu.MenuService;
@@ -50,7 +51,8 @@ public record BootstrapContext(
 
         EventBus events,
         KaraScheduler scheduler,
-        RecipeService recipes
+        RecipeService recipes,
+        EffectService effects
 ) {
 
     public <T> T service(Class<T> type) {
