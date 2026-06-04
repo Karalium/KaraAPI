@@ -5,23 +5,24 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.kerix.karaapi.api.scheduler.KaraScheduler;
+import org.jspecify.annotations.NonNull;
 import org.kerix.karaapi.api.scheduler.ScheduledTaskHandle;
+import org.kerix.karaapi.api.scheduler.SchedulerExecutor;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public final class FoliaKaraScheduler implements KaraScheduler {
+final class FoliaSchedulerExecutor implements SchedulerExecutor {
 
     private final JavaPlugin plugin;
 
-    public FoliaKaraScheduler(JavaPlugin plugin) {
+    FoliaSchedulerExecutor(JavaPlugin plugin) {
         this.plugin = Objects.requireNonNull(plugin, "plugin");
     }
 
-    public static boolean available() {
+    static boolean available() {
         try {
             Bukkit.class.getMethod("getGlobalRegionScheduler");
             Bukkit.class.getMethod("getRegionScheduler");
@@ -85,6 +86,7 @@ public final class FoliaKaraScheduler implements KaraScheduler {
         );
     }
 
+    @Override
     public ScheduledTaskHandle asyncLater(long delayTicks, Runnable runnable) {
         Object scheduler = callStaticBukkit("getAsyncScheduler");
 
@@ -96,6 +98,24 @@ public final class FoliaKaraScheduler implements KaraScheduler {
                         plugin,
                         consumer(runnable),
                         Math.max(1L, delayTicks) * 50L,
+                        TimeUnit.MILLISECONDS
+                }
+        );
+    }
+
+    @Override
+    public ScheduledTaskHandle asyncTimer(long delayTicks, long periodTicks, Runnable runnable) {
+        Object scheduler = callStaticBukkit("getAsyncScheduler");
+
+        return invokeTask(
+                scheduler,
+                "runAtFixedRate",
+                new Class<?>[]{Plugin.class, Consumer.class, long.class, long.class, TimeUnit.class},
+                new Object[]{
+                        plugin,
+                        consumer(runnable),
+                        Math.max(1L, delayTicks) * 50L,
+                        Math.max(1L, periodTicks) * 50L,
                         TimeUnit.MILLISECONDS
                 }
         );
@@ -151,7 +171,6 @@ public final class FoliaKaraScheduler implements KaraScheduler {
 
     private Consumer<Object> consumer(Runnable runnable) {
         Objects.requireNonNull(runnable, "runnable");
-
         return ignored -> runnable.run();
     }
 
@@ -172,6 +191,11 @@ public final class FoliaKaraScheduler implements KaraScheduler {
     }
 
     private ScheduledTaskHandle wrap(Object task) {
+        return getScheduledTaskHandle(task);
+    }
+
+    @NonNull
+    static ScheduledTaskHandle getScheduledTaskHandle(Object task) {
         return new ScheduledTaskHandle() {
             private boolean cancelled;
 

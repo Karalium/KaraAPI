@@ -1,6 +1,6 @@
 package org.kerix.karaapi.api.event;
 
-public interface CancellableKaraEvent {
+public interface CancellableEvent {
 
     boolean cancelled();
 

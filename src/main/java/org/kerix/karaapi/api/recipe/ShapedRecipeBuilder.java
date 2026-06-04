@@ -3,7 +3,6 @@ package org.kerix.karaapi.api.recipe;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 
@@ -11,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public final class ShapedRecipeBuilder implements KaraRecipe {
+public final class ShapedRecipeBuilder implements RecipeDefinition {
 
     private final NamespacedKey key;
     private final ItemStack result;
@@ -62,7 +61,7 @@ public final class ShapedRecipeBuilder implements KaraRecipe {
     }
 
     @Override
-    public Recipe recipe() {
+    public org.bukkit.inventory.Recipe recipe() {
         if (shape == null) {
             throw new IllegalStateException("Recipe shape has not been set.");
         }

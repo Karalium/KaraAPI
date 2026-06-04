@@ -1,6 +1,6 @@
-package org.kerix.karaapi.api.bootstrap;
+package org.kerix.karaapi.runtime;
 
-import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.bootstrap.BootstrapContext;
 import org.kerix.karaapi.api.config.ConfigService;
 import org.kerix.karaapi.api.effect.EffectService;
 import org.kerix.karaapi.api.event.EventBus;
@@ -13,48 +13,40 @@ import org.kerix.karaapi.api.recipe.RecipeService;
 import org.kerix.karaapi.api.region.RegionService;
 import org.kerix.karaapi.api.registry.RegistryService;
 import org.kerix.karaapi.api.requirement.RequirementService;
+import org.kerix.karaapi.api.scheduler.SchedulerService;
+import org.kerix.karaapi.api.service.ServiceContainer;
 import org.kerix.karaapi.api.startup.CommandRegistrar;
 import org.kerix.karaapi.api.startup.ListenerRegistrar;
 import org.kerix.karaapi.api.startup.StartupAnnouncer;
+import org.kerix.karaapi.api.startup.StartupProfile;
 import org.kerix.karaapi.api.storage.StorageService;
 import org.kerix.karaapi.api.task.TaskService;
 import org.kerix.karaapi.api.tick.TickOrchestrator;
-import org.kerix.karaapi.api.service.ServiceContainer;
 import org.kerix.karaapi.api.ui.UiService;
 
-public record BootstrapContext(
-        JavaPlugin apiPlugin,
-        JavaPlugin hostPlugin,
-
+record CoreServices(
         ServiceContainer services,
-
+        SchedulerService scheduler,
         TickOrchestrator ticks,
-        CommandRegistrar commands,
-        ListenerRegistrar listeners,
-        StartupAnnouncer announcer,
-
         ConfigService configs,
         TaskService tasks,
         UiService ui,
         MenuService menus,
-
         PlaceholderService placeholders,
         MessageService messages,
         RegistryService registries,
         StorageService storage,
-
+        StartupProfile profile,
+        StartupAnnouncer announcer,
+        CommandRegistrar commands,
+        ListenerRegistrar listeners,
         ProfileService profiles,
         CustomItemService customItems,
         RequirementService requirements,
         RegionService regions,
-
         EventBus events,
-        org.kerix.karaapi.api.scheduler.SchedulerService scheduler,
+        EffectService effects,
         RecipeService recipes,
-        EffectService effects
+        BootstrapContext context
 ) {
-
-    public <T> T service(Class<T> type) {
-        return services.get(type);
-    }
 }

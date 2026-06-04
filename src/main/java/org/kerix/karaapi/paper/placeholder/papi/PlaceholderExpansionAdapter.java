@@ -1,18 +1,18 @@
 package org.kerix.karaapi.paper.placeholder.papi;
 
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kerix.karaapi.api.placeholder.KaraPlaceholderExpansion;
+import org.kerix.karaapi.api.placeholder.PlaceholderExpansionSpec;
 
 import java.util.Objects;
 
-public final class KaraPlaceholderExpansionAdapter extends PlaceholderExpansion {
+public final class PlaceholderExpansionAdapter
+        extends me.clip.placeholderapi.expansion.PlaceholderExpansion {
 
-    private final KaraPlaceholderExpansion expansion;
+    private final PlaceholderExpansionSpec expansion;
 
-    public KaraPlaceholderExpansionAdapter(KaraPlaceholderExpansion expansion) {
+    public PlaceholderExpansionAdapter(PlaceholderExpansionSpec expansion) {
         this.expansion = Objects.requireNonNull(expansion, "expansion");
     }
 

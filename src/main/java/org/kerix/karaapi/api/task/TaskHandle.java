@@ -1,62 +1,61 @@
 package org.kerix.karaapi.api.task;
 
-import org.bukkit.plugin.Plugin;
-import org.bukkit.scheduler.BukkitTask;
+import org.kerix.karaapi.api.scheduler.ScheduledTaskHandle;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 
-public final class TaskHandle {
+public final class TaskHandle implements ScheduledTaskHandle {
 
-    private final BukkitTask task;
+    private final ScheduledTaskHandle scheduled;
     private final String name;
     private final boolean async;
     private final boolean repeating;
-    private final Instant createdAt;
-    private final Runnable onCancel;
+    private final Instant createdAt = Instant.now();
 
     private volatile TaskState state = TaskState.RUNNING;
 
-    public TaskHandle(
-            BukkitTask task,
+    TaskHandle(
+            ScheduledTaskHandle scheduled,
             String name,
             boolean async,
-            boolean repeating,
-            Runnable onCancel
+            boolean repeating
     ) {
-        this.task = Objects.requireNonNull(task, "task");
+        this.scheduled = Objects.requireNonNull(scheduled, "scheduled");
         this.name = name == null || name.isBlank() ? "unnamed-task" : name;
         this.async = async;
         this.repeating = repeating;
-        this.onCancel = onCancel == null ? () -> {} : onCancel;
-        this.createdAt = Instant.now();
     }
 
+    @Override
     public void cancel() {
-        if (state == TaskState.CANCELLED) {
+        if (state != TaskState.RUNNING) {
             return;
         }
 
         state = TaskState.CANCELLED;
+        scheduled.cancel();
+    }
 
-        if (!task.isCancelled()) {
-            task.cancel();
+    void complete() {
+        if (state == TaskState.RUNNING) {
+            state = TaskState.COMPLETED;
         }
-
-        onCancel.run();
     }
 
+    @Override
     public boolean cancelled() {
-        return state == TaskState.CANCELLED || task.isCancelled();
+        return state == TaskState.CANCELLED || scheduled.cancelled();
     }
 
+    @Override
     public boolean running() {
-        return !cancelled();
+        return state == TaskState.RUNNING && !scheduled.cancelled();
     }
 
-    public int id() {
-        return task.getTaskId();
+    public boolean completed() {
+        return state == TaskState.COMPLETED;
     }
 
     public String name() {
@@ -79,10 +78,6 @@ public final class TaskHandle {
         return !repeating;
     }
 
-    public Plugin owner() {
-        return task.getOwner();
-    }
-
     public Instant createdAt() {
         return createdAt;
     }
@@ -92,14 +87,10 @@ public final class TaskHandle {
     }
 
     public TaskState state() {
-        if (task.isCancelled()) {
+        if (scheduled.cancelled() && state == TaskState.RUNNING) {
             state = TaskState.CANCELLED;
         }
 
         return state;
-    }
-
-    public BukkitTask raw() {
-        return task;
     }
 }

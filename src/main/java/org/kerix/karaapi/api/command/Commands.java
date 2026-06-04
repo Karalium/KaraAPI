@@ -1,8 +1,8 @@
 package org.kerix.karaapi.api.command;
 
-public final class KaraCommands {
+public final class Commands {
 
-    private KaraCommands() {
+    private Commands() {
     }
 
     public static CommandBuilder command(String name) {

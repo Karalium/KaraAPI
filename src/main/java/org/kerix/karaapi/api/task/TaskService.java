@@ -2,6 +2,7 @@ package org.kerix.karaapi.api.task;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
+import org.kerix.karaapi.api.scheduler.SchedulerService;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -13,12 +14,13 @@ import java.util.stream.Collectors;
 public final class TaskService implements Stoppable {
 
     private final JavaPlugin hostPlugin;
+    private final SchedulerService scheduler;
     private final Map<String, TaskGroup> groups = new LinkedHashMap<>();
-
     private final TaskGroup defaultGroup;
 
-    public TaskService(JavaPlugin hostPlugin) {
+    public TaskService(JavaPlugin hostPlugin, SchedulerService scheduler) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
+        this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.defaultGroup = group("default");
     }
 
@@ -27,7 +29,7 @@ public final class TaskService implements Stoppable {
 
         return groups.computeIfAbsent(
                 key,
-                ignored -> new TaskGroup(hostPlugin, key)
+                ignored -> new TaskGroup(hostPlugin, key, scheduler)
         );
     }
 
@@ -130,6 +132,10 @@ public final class TaskService implements Stoppable {
 
     public JavaPlugin hostPlugin() {
         return hostPlugin;
+    }
+
+    public SchedulerService scheduler() {
+        return scheduler;
     }
 
     private static String normalize(String name) {

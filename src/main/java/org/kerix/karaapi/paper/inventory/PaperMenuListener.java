@@ -39,6 +39,8 @@ public final class PaperMenuListener implements Listener {
 
         Menu menu = holder.menu();
 
+
+
         menu.handleOpen(new MenuOpen(
                 menus,
                 menu,
@@ -122,6 +124,10 @@ public final class PaperMenuListener implements Listener {
         InventoryHolder holder = inventory.getHolder();
 
         if (!(holder instanceof PaperMenuHolder menuHolder)) {
+            return null;
+        }
+
+        if (menuHolder.menus() != menus) {
             return null;
         }
 

@@ -3,12 +3,13 @@ package org.kerix.karaapi.api.ui;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.kerix.karaapi.paper.text.Mini;
 import org.kerix.karaapi.paper.text.PaperText;
 
-public final class KaraUI {
+public final class Ui {
 
-    private KaraUI() {
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+
+    private Ui() {
     }
 
     public static Component text(String text) {
@@ -16,7 +17,7 @@ public final class KaraUI {
     }
 
     public static Component mini(String input) {
-        return Mini.parse(input);
+        return MINI_MESSAGE.deserialize(input == null ? "" : input);
     }
 
     public static ChatMessage chat(String text) {

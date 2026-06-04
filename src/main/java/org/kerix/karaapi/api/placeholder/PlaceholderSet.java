@@ -27,20 +27,22 @@ public final class PlaceholderSet {
         return set;
     }
 
+    public static PlaceholderSet create() {
+        return new PlaceholderSet();
+    }
+
     public PlaceholderSet add(String key, Object value) {
         return add(Placeholder.of(key, value));
     }
 
     public PlaceholderSet add(Placeholder placeholder) {
         Objects.requireNonNull(placeholder, "placeholder");
-
         placeholders.put(placeholder.key(), placeholder.value());
         return this;
     }
 
     public PlaceholderSet addAll(PlaceholderSet other) {
         Objects.requireNonNull(other, "other");
-
         placeholders.putAll(other.placeholders);
         return this;
     }
@@ -73,8 +75,22 @@ public final class PlaceholderSet {
         return result;
     }
 
-    public String applyBoth(String input) {
-        return applyPercent(applyAngle(input));
+    public String applyBrace(String input) {
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+
+        String result = input;
+
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            result = result.replace("{" + entry.getKey() + "}", entry.getValue());
+        }
+
+        return result;
+    }
+
+    public String applyAll(String input) {
+        return applyBrace(applyPercent(applyAngle(input)));
     }
 
     public Map<String, String> asMap() {

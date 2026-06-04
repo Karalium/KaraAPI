@@ -2,17 +2,19 @@ package org.kerix.karaapi.api.config;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jspecify.annotations.NonNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
-
-import static org.kerix.karaapi.api.config.ConfigService.getString;
 
 public final class YamlConfig {
 
@@ -44,17 +46,23 @@ public final class YamlConfig {
 
         File parent = file.getParentFile();
 
-        if (parent != null) {
-            parent.mkdirs();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new ConfigException("Could not create config folder: " + parent.getPath());
         }
 
-        if (resourceExists(resourcePath)) {
-            hostPlugin.saveResource(resourcePath, false);
-            return;
+        try (InputStream stream = hostPlugin.getResource(resourcePath)) {
+            if (stream != null) {
+                copyResourceToFile(resourcePath, file);
+                return;
+            }
+        } catch (IOException exception) {
+            throw new ConfigException("Could not read default resource: " + resourcePath, exception);
         }
 
         try {
-            file.createNewFile();
+            if (!file.createNewFile()) {
+                throw new ConfigException("Could not create config file: " + file.getPath());
+            }
         } catch (IOException exception) {
             throw new ConfigException("Could not create config file: " + file.getPath(), exception);
         }
@@ -64,18 +72,21 @@ public final class YamlConfig {
         this.yaml = YamlConfiguration.loadConfiguration(file);
         this.yaml.options().copyDefaults(true);
 
-        if (resourceExists(resourcePath)) {
-            try (InputStream stream = hostPlugin.getResource(resourcePath)) {
-                if (stream != null) {
-                    YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
-                            new java.io.InputStreamReader(stream)
-                    );
+        if (!resourceExists(resourcePath)) {
+            return;
+        }
 
-                    this.yaml.setDefaults(defaults);
-                }
-            } catch (IOException exception) {
-                throw new ConfigException("Could not load default resource: " + resourcePath, exception);
+        try (InputStream stream = hostPlugin.getResource(resourcePath)) {
+            if (stream == null) {
+                return;
             }
+
+            InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8);
+            YamlConfiguration defaults = YamlConfiguration.loadConfiguration(reader);
+
+            this.yaml.setDefaults(defaults);
+        } catch (IOException exception) {
+            throw new ConfigException("Could not load default resource: " + resourcePath, exception);
         }
     }
 
@@ -104,7 +115,7 @@ public final class YamlConfig {
         return yaml.get(path);
     }
 
-    public void set(String path, Object value) {
+    public void raw(String path, Object value) {
         yaml.set(path, value);
     }
 
@@ -125,8 +136,7 @@ public final class YamlConfig {
 
         if (!yaml.contains(key.path())) {
             throw new ConfigException(
-                    "Missing required config value '" + key.path()
-                            + "' in " + fileName
+                    "Missing required config value '" + key.path() + "' in " + fileName
             );
         }
 
@@ -135,19 +145,7 @@ public final class YamlConfig {
 
     public <T> void set(ConfigKey<T> key, T value) {
         Objects.requireNonNull(key, "key");
-
         key.type().write(yaml, key.path(), value);
-    }
-
-    public boolean setIfMissing(String path, Object value) {
-        Objects.requireNonNull(path, "path");
-
-        if (yaml.isSet(path)) {
-            return false;
-        }
-
-        yaml.set(path, value);
-        return true;
     }
 
     public ConfigurationSection section(String path) {
@@ -170,6 +168,24 @@ public final class YamlConfig {
         }
 
         return section;
+    }
+
+    private void copyResourceToFile(String resourcePath, File target) {
+        try (InputStream stream = hostPlugin.getResource(resourcePath)) {
+            if (stream == null) {
+                return;
+            }
+
+            File parent = target.getParentFile();
+
+            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                throw new ConfigException("Could not create config folder: " + parent.getPath());
+            }
+
+            Files.copy(stream, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException exception) {
+            throw new ConfigException("Could not copy default config resource: " + resourcePath, exception);
+        }
     }
 
     public Set<String> keys(boolean deep) {
@@ -212,7 +228,15 @@ public final class YamlConfig {
     }
 
     private static String normalizeFileName(String fileName) {
-        return getString(fileName);
+        Objects.requireNonNull(fileName, "fileName");
+
+        String normalized = normalizeRelativePath(fileName);
+
+        if (!normalized.endsWith(".yml") && !normalized.endsWith(".yaml")) {
+            normalized += ".yml";
+        }
+
+        return normalized;
     }
 
     private static String normalizeResourcePath(String resourcePath) {
@@ -220,6 +244,31 @@ public final class YamlConfig {
             return null;
         }
 
-        return resourcePath.trim().replace("\\", "/");
+        return normalizeRelativePath(resourcePath);
+    }
+
+    private static String normalizeRelativePath(String path) {
+        return getString(path);
+    }
+
+    @NonNull
+    public static String getString(String path) {
+        String normalized = path.trim().replace("\\", "/");
+
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("Path cannot be blank.");
+        }
+
+        if (normalized.startsWith("/") || normalized.contains(":")) {
+            throw new IllegalArgumentException("Path must be relative: " + path);
+        }
+
+        for (String segment : normalized.split("/")) {
+            if (segment.isBlank() || segment.equals(".") || segment.equals("..")) {
+                throw new IllegalArgumentException("Unsafe path: " + path);
+            }
+        }
+
+        return normalized;
     }
 }

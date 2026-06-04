@@ -15,12 +15,23 @@ public final class ArgumentSchema {
     }
 
     public <T> ArgumentSchema required(String name, ArgumentType<T> type) {
+        ensureCanAddNormalArgument();
         arguments.add(CommandArgument.required(name, type));
         return this;
     }
 
     public <T> ArgumentSchema optional(String name, ArgumentType<T> type, T defaultValue) {
+        ensureCanAddNormalArgument();
         arguments.add(CommandArgument.optional(name, type, defaultValue));
+        return this;
+    }
+
+    public ArgumentSchema greedy(String name) {
+        if (!arguments.isEmpty() && arguments.get(arguments.size() - 1).greedy()) {
+            throw new IllegalStateException("Only one greedy argument is allowed.");
+        }
+
+        arguments.add(CommandArgument.greedy(name));
         return this;
     }
 
@@ -28,85 +39,39 @@ public final class ArgumentSchema {
         Objects.requireNonNull(context, "context");
 
         String[] raw = context.args();
-
-        validate(raw);
-
         ParsedArguments parsed = new ParsedArguments();
 
-        for (int index = 0; index < arguments.size(); index++) {
-            CommandArgument<?> argument = arguments.get(index);
+        int rawIndex = 0;
 
-            if (index >= raw.length) {
-                parsed.put(argument.name(), argument.defaultValue());
-                continue;
+        for (CommandArgument<?> argument : arguments) {
+            if (rawIndex >= raw.length) {
+                if (argument.optional()) {
+                    parsed.put(argument.name(), argument.defaultValue());
+                    continue;
+                }
+
+                throw new ArgumentParseException("Missing argument: " + argument.name());
             }
 
-            Object value = argument.type().parse(context, raw[index]);
+            String input;
+
+            if (argument.greedy()) {
+                input = String.join(" ", List.of(raw).subList(rawIndex, raw.length));
+                rawIndex = raw.length;
+            } else {
+                input = raw[rawIndex];
+                rawIndex++;
+            }
+
+            Object value = argument.type().parse(context, input);
             parsed.put(argument.name(), value);
         }
 
+        if (rawIndex < raw.length) {
+            throw new ArgumentParseException("Too many arguments.");
+        }
+
         return parsed;
-    }
-
-    public void validate(String[] raw) {
-        int provided = raw == null ? 0 : raw.length;
-        int minimum = requiredCount();
-        int maximum = arguments.size();
-
-        if (provided < minimum) {
-            throw new ArgumentParseException(
-                    "Missing arguments. Expected: " + usage()
-            );
-        }
-
-        if (provided > maximum) {
-            throw new ArgumentParseException(
-                    "Too many arguments. Expected: " + usage()
-            );
-        }
-    }
-
-    public boolean accepts(int providedArgumentCount) {
-        return providedArgumentCount >= requiredCount()
-                && providedArgumentCount <= arguments.size();
-    }
-
-    public int requiredCount() {
-        int count = 0;
-
-        for (CommandArgument<?> argument : arguments) {
-            if (!argument.optional()) {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    public int maxCount() {
-        return arguments.size();
-    }
-
-    public String usage() {
-        if (arguments.isEmpty()) {
-            return "";
-        }
-
-        StringBuilder builder = new StringBuilder();
-
-        for (CommandArgument<?> argument : arguments) {
-            if (!builder.isEmpty()) {
-                builder.append(" ");
-            }
-
-            if (argument.optional()) {
-                builder.append("[").append(argument.name()).append("]");
-            } else {
-                builder.append("<").append(argument.name()).append(">");
-            }
-        }
-
-        return builder.toString();
     }
 
     public List<String> suggest(CommandContext context, int argumentIndex, String input) {
@@ -117,7 +82,33 @@ public final class ArgumentSchema {
         return arguments.get(argumentIndex).type().suggest(context, input);
     }
 
+    public boolean empty() {
+        return arguments.isEmpty();
+    }
+
+    public int size() {
+        return arguments.size();
+    }
+
     public List<CommandArgument<?>> arguments() {
         return List.copyOf(arguments);
+    }
+
+    public String usage() {
+        return String.join(" ", arguments.stream()
+                .map(CommandArgument::usage)
+                .toList());
+    }
+
+    public ArgumentSchema copy() {
+        ArgumentSchema copy = new ArgumentSchema();
+        copy.arguments.addAll(arguments);
+        return copy;
+    }
+
+    private void ensureCanAddNormalArgument() {
+        if (!arguments.isEmpty() && arguments.get(arguments.size() - 1).greedy()) {
+            throw new IllegalStateException("Cannot add arguments after a greedy argument.");
+        }
     }
 }

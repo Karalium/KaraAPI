@@ -1,24 +1,26 @@
 package org.kerix.karaapi.api.task;
 
 import org.bukkit.plugin.java.JavaPlugin;
-import org.kerix.karaapi.paper.scheduler.PaperScheduler;
+import org.kerix.karaapi.api.scheduler.ScheduledTaskHandle;
+import org.kerix.karaapi.api.scheduler.SchedulerService;
 
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public final class TaskGroup {
 
     private final JavaPlugin hostPlugin;
     private final String name;
-    private final PaperScheduler scheduler;
+    private final SchedulerService scheduler;
     private final Set<TaskHandle> tasks = ConcurrentHashMap.newKeySet();
 
-    public TaskGroup(JavaPlugin hostPlugin, String name) {
+    public TaskGroup(JavaPlugin hostPlugin, String name, SchedulerService scheduler) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
         this.name = name == null || name.isBlank() ? "default" : name;
-        this.scheduler = new PaperScheduler(hostPlugin);
+        this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
     }
 
     public TaskHandle sync(Runnable runnable) {
@@ -26,9 +28,7 @@ public final class TaskGroup {
     }
 
     public TaskHandle sync(String taskName, Runnable runnable) {
-        TaskHandle handle = scheduler.sync(taskName, wrapSingle(runnable));
-        tasks.add(handle);
-        return handle;
+        return single(taskName, false, action -> scheduler.sync(action), runnable);
     }
 
     public TaskHandle async(Runnable runnable) {
@@ -36,9 +36,7 @@ public final class TaskGroup {
     }
 
     public TaskHandle async(String taskName, Runnable runnable) {
-        TaskHandle handle = scheduler.async(taskName, wrapSingle(runnable));
-        tasks.add(handle);
-        return handle;
+        return single(taskName, true, action -> scheduler.async(action), runnable);
     }
 
     public TaskHandle later(long delayTicks, Runnable runnable) {
@@ -46,9 +44,7 @@ public final class TaskGroup {
     }
 
     public TaskHandle later(String taskName, long delayTicks, Runnable runnable) {
-        TaskHandle handle = scheduler.later(taskName, delayTicks, wrapSingle(runnable));
-        tasks.add(handle);
-        return handle;
+        return single(taskName, false, action -> scheduler.later(delayTicks, action), runnable);
     }
 
     public TaskHandle laterAsync(long delayTicks, Runnable runnable) {
@@ -56,9 +52,7 @@ public final class TaskGroup {
     }
 
     public TaskHandle laterAsync(String taskName, long delayTicks, Runnable runnable) {
-        TaskHandle handle = scheduler.laterAsync(taskName, delayTicks, wrapSingle(runnable));
-        tasks.add(handle);
-        return handle;
+        return single(taskName, true, action -> scheduler.asyncLater(delayTicks, action), runnable);
     }
 
     public TaskHandle timer(long delayTicks, long periodTicks, Runnable runnable) {
@@ -66,9 +60,8 @@ public final class TaskGroup {
     }
 
     public TaskHandle timer(String taskName, long delayTicks, long periodTicks, Runnable runnable) {
-        TaskHandle handle = scheduler.timer(taskName, delayTicks, periodTicks, runnable);
-        tasks.add(handle);
-        return handle;
+        ScheduledTaskHandle scheduled = scheduler.timer(delayTicks, periodTicks, runnable);
+        return track(scheduled, taskName, false, true);
     }
 
     public TaskHandle timerAsync(long delayTicks, long periodTicks, Runnable runnable) {
@@ -76,9 +69,8 @@ public final class TaskGroup {
     }
 
     public TaskHandle timerAsync(String taskName, long delayTicks, long periodTicks, Runnable runnable) {
-        TaskHandle handle = scheduler.timerAsync(taskName, delayTicks, periodTicks, runnable);
-        tasks.add(handle);
-        return handle;
+        ScheduledTaskHandle scheduled = scheduler.asyncTimer(delayTicks, periodTicks, runnable);
+        return track(scheduled, taskName, true, true);
     }
 
     public TaskHandle timerControlled(
@@ -95,8 +87,21 @@ public final class TaskGroup {
             long periodTicks,
             Consumer<TaskHandle> runnable
     ) {
-        TaskHandle handle = scheduler.timerControlled(taskName, delayTicks, periodTicks, runnable);
-        tasks.add(handle);
+        Objects.requireNonNull(runnable, "runnable");
+
+        AtomicReference<TaskHandle> ref = new AtomicReference<>();
+
+        ScheduledTaskHandle scheduled = scheduler.timer(delayTicks, periodTicks, () -> {
+            TaskHandle handle = ref.get();
+
+            if (handle != null && handle.running()) {
+                runnable.accept(handle);
+            }
+        });
+
+        TaskHandle handle = track(scheduled, taskName, false, true);
+        ref.set(handle);
+
         return handle;
     }
 
@@ -131,18 +136,53 @@ public final class TaskGroup {
     }
 
     public void cleanup() {
-        tasks.removeIf(TaskHandle::cancelled);
+        tasks.removeIf(task -> !task.running());
     }
 
-    private Runnable wrapSingle(Runnable runnable) {
+    private TaskHandle single(
+            String taskName,
+            boolean async,
+            SchedulerFunction schedulerFunction,
+            Runnable runnable
+    ) {
         Objects.requireNonNull(runnable, "runnable");
 
-        return () -> {
+        AtomicReference<TaskHandle> ref = new AtomicReference<>();
+
+        ScheduledTaskHandle scheduled = schedulerFunction.schedule(() -> {
             try {
                 runnable.run();
             } finally {
+                TaskHandle handle = ref.get();
+
+                if (handle != null) {
+                    handle.complete();
+                }
+
                 cleanup();
             }
-        };
+        });
+
+        TaskHandle handle = track(scheduled, taskName, async, false);
+        ref.set(handle);
+
+        return handle;
+    }
+
+    private TaskHandle track(
+            ScheduledTaskHandle scheduled,
+            String taskName,
+            boolean async,
+            boolean repeating
+    ) {
+        TaskHandle handle = new TaskHandle(scheduled, taskName, async, repeating);
+        tasks.add(handle);
+        cleanup();
+        return handle;
+    }
+
+    @FunctionalInterface
+    private interface SchedulerFunction {
+        ScheduledTaskHandle schedule(Runnable runnable);
     }
 }

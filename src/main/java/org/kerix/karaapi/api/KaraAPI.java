@@ -4,6 +4,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.bootstrap.PluginModule;
 import org.kerix.karaapi.runtime.KaraRuntime;
 
+import java.util.Objects;
+
 public final class KaraAPI {
 
     private static KaraRuntime runtime;
@@ -11,7 +13,9 @@ public final class KaraAPI {
     private KaraAPI() {
     }
 
-    public static void init(JavaPlugin apiPlugin) {
+    public static synchronized void init(JavaPlugin apiPlugin) {
+        Objects.requireNonNull(apiPlugin, "apiPlugin");
+
         if (runtime != null) {
             throw new IllegalStateException("KaraAPI is already initialized.");
         }
@@ -24,20 +28,38 @@ public final class KaraAPI {
     }
 
     public static void shutdown(JavaPlugin hostPlugin) {
-        runtime().shutdown(hostPlugin);
+        KaraRuntime current = runtime;
+
+        if (current == null) {
+            return;
+        }
+
+        current.shutdown(hostPlugin);
     }
 
-    public static void shutdownAll() {
-        if (runtime != null) {
-            runtime.shutdownAll();
+    public static synchronized void shutdownAll() {
+        if (runtime == null) {
+            return;
         }
+
+        try {
+            runtime.shutdownAll();
+        } finally {
+            runtime = null;
+        }
+    }
+
+    public static synchronized boolean initialized() {
+        return runtime != null;
     }
 
     private static KaraRuntime runtime() {
-        if (runtime == null) {
+        KaraRuntime current = runtime;
+
+        if (current == null) {
             throw new IllegalStateException("KaraAPI has not been initialized.");
         }
 
-        return runtime;
+        return current;
     }
 }

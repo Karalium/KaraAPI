@@ -2,7 +2,7 @@ package org.kerix.karaapi.paper.placeholder;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.kerix.karaapi.api.placeholder.KaraPlaceholderExpansion;
+import org.kerix.karaapi.api.placeholder.PlaceholderExpansionSpec;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -11,9 +11,8 @@ import java.util.Objects;
 public final class PlaceholderApiBridge {
 
     private static final String PLUGIN_NAME = "PlaceholderAPI";
-
     private static final String ADAPTER_CLASS =
-            "org.kerix.karaapi.paper.placeholder.papi.KaraPlaceholderExpansionAdapter";
+            "org.kerix.karaapi.paper.placeholder.papi.PlaceholderExpansionAdapter";
 
     private PlaceholderApiBridge() {
     }
@@ -30,7 +29,7 @@ public final class PlaceholderApiBridge {
 
     public static boolean registerExpansion(
             JavaPlugin hostPlugin,
-            KaraPlaceholderExpansion expansion
+            PlaceholderExpansionSpec expansion
     ) {
         Objects.requireNonNull(hostPlugin, "hostPlugin");
         Objects.requireNonNull(expansion, "expansion");
@@ -48,13 +47,11 @@ public final class PlaceholderApiBridge {
             Class<?> adapterClass = Class.forName(ADAPTER_CLASS);
 
             Constructor<?> constructor = adapterClass.getConstructor(
-                    KaraPlaceholderExpansion.class
+                    PlaceholderExpansionSpec.class
             );
 
             Object adapter = constructor.newInstance(expansion);
-
             Method registerMethod = adapterClass.getMethod("register");
-
             Object result = registerMethod.invoke(adapter);
 
             return result instanceof Boolean bool && bool;
@@ -65,7 +62,6 @@ public final class PlaceholderApiBridge {
                             + "': "
                             + exception.getMessage()
             );
-
             return false;
         }
     }

@@ -3,7 +3,6 @@ package org.kerix.karaapi.api.recipe;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapelessRecipe;
 
@@ -11,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public final class ShapelessRecipeBuilder implements KaraRecipe {
+public final class ShapelessRecipeBuilder implements RecipeDefinition {
 
     private final NamespacedKey key;
     private final ItemStack result;
@@ -47,7 +46,7 @@ public final class ShapelessRecipeBuilder implements KaraRecipe {
     }
 
     @Override
-    public Recipe recipe() {
+    public org.bukkit.inventory.Recipe recipe() {
         ShapelessRecipe recipe = new ShapelessRecipe(key, result.clone());
 
         for (RecipeChoice ingredient : ingredients) {

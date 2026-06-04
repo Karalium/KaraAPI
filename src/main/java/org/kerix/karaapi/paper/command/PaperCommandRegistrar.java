@@ -1,11 +1,15 @@
 package org.kerix.karaapi.paper.command;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.command.CommandNode;
+import org.kerix.karaapi.api.startup.CommandRegistration;
 
+import java.util.List;
 import java.util.Objects;
 
 public record PaperCommandRegistrar(JavaPlugin hostPlugin) {
@@ -14,36 +18,42 @@ public record PaperCommandRegistrar(JavaPlugin hostPlugin) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
     }
 
-    public void register(CommandNode node) {
+    public CommandRegistration register(CommandNode node) {
         Objects.requireNonNull(node, "node");
 
         PaperCommandAdapter adapter = new PaperCommandAdapter(node);
-
-        register(node.name(), adapter, adapter);
+        return register(node.name(), adapter, adapter);
     }
 
-    public void register(String name, CommandNode node) {
+    public CommandRegistration register(String name, CommandNode node) {
         Objects.requireNonNull(node, "node");
 
         PaperCommandAdapter adapter = new PaperCommandAdapter(node);
-
-        register(name, adapter, adapter);
+        return register(name, adapter, adapter);
     }
 
-    public void register(String name, CommandExecutor executor) {
+    public CommandRegistration register(String name, CommandExecutor executor) {
         Objects.requireNonNull(executor, "executor");
 
         PluginCommand command = requireCommand(name);
         command.setExecutor(executor);
+
+        return registration(command);
     }
 
-    public void register(String name, CommandExecutor executor, TabCompleter tabCompleter) {
+    public CommandRegistration register(
+            String name,
+            CommandExecutor executor,
+            TabCompleter tabCompleter
+    ) {
         Objects.requireNonNull(executor, "executor");
         Objects.requireNonNull(tabCompleter, "tabCompleter");
 
         PluginCommand command = requireCommand(name);
         command.setExecutor(executor);
         command.setTabCompleter(tabCompleter);
+
+        return registration(command);
     }
 
     public PluginCommand requireCommand(String name) {
@@ -53,11 +63,24 @@ public record PaperCommandRegistrar(JavaPlugin hostPlugin) {
 
         if (command == null) {
             throw new IllegalStateException(
-                    "Command '" + name + "' is not defined in plugin.yml for "
-                            + hostPlugin.getName()
+                    "Command '" + name + "' is not defined in plugin.yml for " + hostPlugin.getName()
             );
         }
 
         return command;
+    }
+
+    private CommandRegistration registration(PluginCommand command) {
+        return new CommandRegistration(command, () -> {
+            command.setExecutor((sender, ignoredCommand, label, args) -> {
+                sender.sendMessage(Component.text(
+                        "This command is no longer available.",
+                        NamedTextColor.RED
+                ));
+                return true;
+            });
+
+            command.setTabCompleter((sender, ignoredCommand, alias, args) -> List.of());
+        });
     }
 }

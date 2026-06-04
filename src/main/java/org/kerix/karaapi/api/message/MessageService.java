@@ -21,7 +21,6 @@ public final class MessageService implements Stoppable {
     private final ConfigService configs;
     private final PlaceholderService placeholders;
     private final ComponentRenderer renderer;
-
     private final Map<String, MessageBundle> bundles = new LinkedHashMap<>();
 
     public MessageService(
@@ -32,7 +31,7 @@ public final class MessageService implements Stoppable {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
         this.configs = Objects.requireNonNull(configs, "configs");
         this.placeholders = Objects.requireNonNull(placeholders, "placeholders");
-        this.renderer = new ComponentRenderer(placeholders, this::prefixRaw);
+        this.renderer = new ComponentRenderer(placeholders);
     }
 
     public MessageBundle main() {
@@ -66,15 +65,6 @@ public final class MessageService implements Stoppable {
         return renderer.component(player, raw, set);
     }
 
-    public Component gradient(
-            OfflinePlayer player,
-            String raw,
-            PlaceholderSet set,
-            String... colors
-    ) {
-        return renderer.gradient(player, raw, set, colors);
-    }
-
     public Component component(MessageKey key) {
         return main().component(key);
     }
@@ -83,45 +73,46 @@ public final class MessageService implements Stoppable {
         return main().component(player, key, set);
     }
 
-    public void send(Audience audience, MessageKey key) {
-        audience.sendMessage(component(key));
-    }
-
     public void send(Audience audience, String raw) {
-        OfflinePlayer player = audience instanceof Player bukkitPlayer
-                ? bukkitPlayer
-                : null;
-
-        audience.sendMessage(component(player, raw, PlaceholderSet.empty()));
+        send(audience, raw, PlaceholderSet.empty());
     }
 
     public void send(Audience audience, String raw, PlaceholderSet set) {
-        OfflinePlayer player = audience instanceof Player bukkitPlayer
-                ? bukkitPlayer
-                : null;
+        Objects.requireNonNull(audience, "audience");
 
+        OfflinePlayer player = audience instanceof Player bukkitPlayer ? bukkitPlayer : null;
         audience.sendMessage(component(player, raw, set));
     }
 
-    public void send(Audience audience, MessageKey key, PlaceholderSet set) {
-        OfflinePlayer player = audience instanceof Player bukkitPlayer
-                ? bukkitPlayer
-                : null;
+    public void send(Audience audience, MessageKey key) {
+        send(audience, key, PlaceholderSet.empty());
+    }
 
+    public void send(Audience audience, MessageKey key, PlaceholderSet set) {
+        Objects.requireNonNull(audience, "audience");
+
+        OfflinePlayer player = audience instanceof Player bukkitPlayer ? bukkitPlayer : null;
         audience.sendMessage(main().component(player, key, set));
     }
 
     public void send(CommandSender sender, MessageKey key) {
-        sender.sendMessage(component(key));
+        send(sender, key, PlaceholderSet.empty());
+    }
+
+    public void send(CommandSender sender, MessageKey key, PlaceholderSet set) {
+        Objects.requireNonNull(sender, "sender");
+        OfflinePlayer player = sender instanceof Player bukkitPlayer ? bukkitPlayer : null;
+        sender.sendMessage(main().component(player, key, set));
     }
 
     public void send(Player player, MessageKey key, PlaceholderSet set) {
+        Objects.requireNonNull(player, "player");
         player.sendMessage(main().component(player, key, set));
     }
 
     public void reloadAll() {
         for (MessageBundle bundle : bundles.values()) {
-            bundle.config().reload();
+            bundle.reload();
         }
     }
 
@@ -154,9 +145,5 @@ public final class MessageService implements Stoppable {
         }
 
         return normalized;
-    }
-
-    private String prefixRaw() {
-        return main().raw(Messages.PREFIX.key());
     }
 }

@@ -5,7 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Locale;
 import java.util.Objects;
 
-public record KaraPlaceholderExpansion(
+public record PlaceholderExpansionSpec(
         String identifier,
         String author,
         String version,
@@ -13,15 +13,14 @@ public record KaraPlaceholderExpansion(
         PlaceholderExpansionResolver resolver
 ) {
 
-    public KaraPlaceholderExpansion {
+    public PlaceholderExpansionSpec {
         identifier = normalizeIdentifier(identifier);
         author = author == null || author.isBlank() ? "Unknown" : author;
         version = version == null || version.isBlank() ? "1.0.0" : version;
-
         Objects.requireNonNull(resolver, "resolver");
     }
 
-    public static KaraPlaceholderExpansion of(
+    public static PlaceholderExpansionSpec of(
             JavaPlugin plugin,
             String identifier,
             PlaceholderExpansionResolver resolver
@@ -32,7 +31,7 @@ public record KaraPlaceholderExpansion(
                 ? "Unknown"
                 : String.join(", ", plugin.getDescription().getAuthors());
 
-        return new KaraPlaceholderExpansion(
+        return new PlaceholderExpansionSpec(
                 identifier,
                 author,
                 plugin.getDescription().getVersion(),

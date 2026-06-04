@@ -5,4 +5,8 @@ public interface ScheduledTaskHandle {
     void cancel();
 
     boolean cancelled();
+
+    default boolean running() {
+        return !cancelled();
+    }
 }

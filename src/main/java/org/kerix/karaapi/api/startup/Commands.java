@@ -8,7 +8,7 @@ import org.bukkit.command.TabCompleter;
 import java.util.Collections;
 import java.util.List;
 
-public interface KaraCommand extends CommandExecutor, TabCompleter {
+public interface Commands extends CommandExecutor, TabCompleter {
 
     @Override
     default List<String> onTabComplete(

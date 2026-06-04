@@ -3,10 +3,9 @@ package org.kerix.karaapi.api.placeholder;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
-import org.kerix.karaapi.paper.placeholder.PlaceholderApiBridge;
-import org.kerix.karaapi.paper.placeholder.PlaceholderApiProvider;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,34 +15,27 @@ public final class PlaceholderService implements Stoppable {
     private final List<PlaceholderProvider> providers = new ArrayList<>();
 
     public PlaceholderService(JavaPlugin hostPlugin) {
+        this(hostPlugin, List.of());
+    }
+
+    public PlaceholderService(
+            JavaPlugin hostPlugin,
+            Collection<? extends PlaceholderProvider> externalProviders
+    ) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
 
         registerProvider(new LocalPlaceholderProvider());
 
-        PlaceholderApiProvider papi = PlaceholderApiProvider.tryCreate(hostPlugin);
-
-        if (papi != null) {
-            registerProvider(papi);
-            hostPlugin.getLogger().info("[KaraAPI] Hooked into PlaceholderAPI.");
-        } else {
-            hostPlugin.getLogger().fine("[KaraAPI] PlaceholderAPI not found; PAPI placeholders disabled.");
+        if (externalProviders != null) {
+            for (PlaceholderProvider provider : externalProviders) {
+                registerProvider(provider);
+            }
         }
     }
 
     public void registerProvider(PlaceholderProvider provider) {
         Objects.requireNonNull(provider, "provider");
-
         providers.add(provider);
-    }
-
-    public boolean placeholderApiAvailable() {
-        return PlaceholderApiBridge.available(hostPlugin);
-    }
-
-    public boolean registerExpansion(KaraPlaceholderExpansion expansion) {
-        Objects.requireNonNull(expansion, "expansion");
-
-        return PlaceholderApiBridge.registerExpansion(hostPlugin, expansion);
     }
 
     public String apply(String input) {
@@ -101,7 +93,7 @@ public final class PlaceholderService implements Stoppable {
 
         @Override
         public String apply(PlaceholderContext context, String input) {
-            return context.placeholders().applyBoth(input);
+            return context.placeholders().applyAll(input);
         }
     }
 }

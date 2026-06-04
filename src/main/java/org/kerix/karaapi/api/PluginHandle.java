@@ -2,7 +2,7 @@ package org.kerix.karaapi.api;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.bootstrap.BootstrapContext;
-import org.kerix.karaapi.api.effect.EffectService;
+import org.kerix.karaapi.api.config.ConfigService;
 import org.kerix.karaapi.api.event.EventBus;
 import org.kerix.karaapi.api.item.custom.CustomItemService;
 import org.kerix.karaapi.api.menu.MenuService;
@@ -13,28 +13,24 @@ import org.kerix.karaapi.api.recipe.RecipeService;
 import org.kerix.karaapi.api.region.RegionService;
 import org.kerix.karaapi.api.registry.RegistryService;
 import org.kerix.karaapi.api.requirement.RequirementService;
-import org.kerix.karaapi.api.scheduler.KaraScheduler;
+import org.kerix.karaapi.api.scheduler.SchedulerService;
 import org.kerix.karaapi.api.service.ServiceContainer;
 import org.kerix.karaapi.api.startup.CommandRegistrar;
 import org.kerix.karaapi.api.startup.ListenerRegistrar;
 import org.kerix.karaapi.api.startup.StartupAnnouncer;
 import org.kerix.karaapi.api.storage.StorageService;
+import org.kerix.karaapi.api.task.TaskService;
 import org.kerix.karaapi.api.tick.TickOrchestrator;
+import org.kerix.karaapi.api.ui.UiService;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.kerix.karaapi.api.config.ConfigService;
-import org.kerix.karaapi.api.task.TaskService;
-import org.kerix.karaapi.api.ui.UiService;
-
 
 public final class PluginHandle {
 
     private final JavaPlugin hostPlugin;
     private final BootstrapContext context;
     private final Runnable shutdownAction;
-
     private final AtomicBoolean shutdown = new AtomicBoolean(false);
 
     public PluginHandle(
@@ -47,12 +43,20 @@ public final class PluginHandle {
         this.shutdownAction = Objects.requireNonNull(shutdownAction, "shutdownAction");
     }
 
+    public JavaPlugin apiPlugin() {
+        return context.apiPlugin();
+    }
+
     public JavaPlugin hostPlugin() {
         return hostPlugin;
     }
 
     public BootstrapContext context() {
         return context;
+    }
+
+    public <T> T service(Class<T> type) {
+        return context.service(type);
     }
 
     public ServiceContainer services() {
@@ -127,15 +131,12 @@ public final class PluginHandle {
         return context.events();
     }
 
-    public KaraScheduler scheduler() {
+    public SchedulerService scheduler() {
         return context.scheduler();
     }
 
     public RecipeService recipes() {
         return context.recipes();
-    }
-    public EffectService effects(){
-        return context.effects();
     }
 
     public boolean isShutdown() {

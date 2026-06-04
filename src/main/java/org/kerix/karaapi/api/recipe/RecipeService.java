@@ -20,7 +20,7 @@ public final class RecipeService implements Stoppable {
         this.registrar = new PaperRecipeRegistrar(hostPlugin);
     }
 
-    public void register(KaraRecipe recipe) {
+    public void register(RecipeDefinition recipe) {
         registrar.register(recipe.recipe());
         registered.add(recipe.key());
     }

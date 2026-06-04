@@ -1,23 +1,27 @@
 package org.kerix.karaapi.api.menu;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
+import org.kerix.karaapi.api.scheduler.SchedulerService;
 import org.kerix.karaapi.paper.inventory.PaperMenuListener;
 import org.kerix.karaapi.paper.listener.PaperListenerRegistrar;
-import org.kerix.karaapi.paper.scheduler.PaperScheduler;
 
 import java.util.Objects;
 
 public final class MenuService implements Stoppable {
 
     private final JavaPlugin hostPlugin;
-    private final PaperScheduler scheduler;
+    private final SchedulerService scheduler;
     private final PaperMenuListener listener;
 
-    public MenuService(JavaPlugin hostPlugin) {
+    private boolean stopped;
+
+    public MenuService(JavaPlugin hostPlugin, SchedulerService scheduler) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
-        this.scheduler = new PaperScheduler(hostPlugin);
+        this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.listener = new PaperMenuListener(this);
 
         new PaperListenerRegistrar(hostPlugin).register(listener);
@@ -27,26 +31,38 @@ public final class MenuService implements Stoppable {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(menu, "menu");
 
-        menu.open(this, player);
+        ensureRunning();
+
+        scheduler.entity(player, () -> openNow(player, menu));
     }
 
     public void openNextTick(Player player, Menu menu) {
         Objects.requireNonNull(player, "player");
         Objects.requireNonNull(menu, "menu");
 
-        scheduler.later("open-menu-next-tick", 1L, () -> open(player, menu));
+        ensureRunning();
+
+        scheduler.later(1L, () -> scheduler.entity(player, () -> openNow(player, menu)));
     }
 
     public void close(Player player) {
         Objects.requireNonNull(player, "player");
 
-        player.closeInventory();
+        ensureRunning();
+
+        scheduler.entity(player, player::closeInventory);
     }
 
     public void closeNextTick(Player player) {
         Objects.requireNonNull(player, "player");
 
-        scheduler.later("close-menu-next-tick", 1L, player::closeInventory);
+        ensureRunning();
+
+        scheduler.later(1L, () -> scheduler.entity(player, player::closeInventory));
+    }
+
+    public boolean owns(Inventory inventory) {
+        return listener.isKaraMenu(inventory);
     }
 
     public PaperMenuListener listener() {
@@ -57,12 +73,39 @@ public final class MenuService implements Stoppable {
         return hostPlugin;
     }
 
+    public SchedulerService scheduler() {
+        return scheduler;
+    }
+
     @Override
     public void stop() {
+        if (stopped) {
+            return;
+        }
+
+        stopped = true;
+        HandlerList.unregisterAll(listener);
+
         for (Player player : hostPlugin.getServer().getOnlinePlayers()) {
-            if (listener.isKaraMenu(player.getOpenInventory().getTopInventory())) {
+            Inventory topInventory = player.getOpenInventory().getTopInventory();
+
+            if (listener.isKaraMenu(topInventory)) {
                 player.closeInventory();
             }
+        }
+    }
+
+    private void openNow(Player player, Menu menu) {
+        if (stopped) {
+            return;
+        }
+
+        menu.open(this, player);
+    }
+
+    private void ensureRunning() {
+        if (stopped) {
+            throw new IllegalStateException("MenuService has already stopped.");
         }
     }
 }

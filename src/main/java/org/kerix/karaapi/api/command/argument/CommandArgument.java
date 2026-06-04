@@ -6,7 +6,8 @@ public record CommandArgument<T>(
         String name,
         ArgumentType<T> type,
         boolean optional,
-        T defaultValue
+        T defaultValue,
+        boolean greedy
 ) {
 
     public CommandArgument {
@@ -19,10 +20,26 @@ public record CommandArgument<T>(
     }
 
     public static <T> CommandArgument<T> required(String name, ArgumentType<T> type) {
-        return new CommandArgument<>(name, type, false, null);
+        return new CommandArgument<>(name, type, false, null, false);
     }
 
     public static <T> CommandArgument<T> optional(String name, ArgumentType<T> type, T defaultValue) {
-        return new CommandArgument<>(name, type, true, defaultValue);
+        return new CommandArgument<>(name, type, true, defaultValue, false);
+    }
+
+    public static CommandArgument<String> greedy(String name) {
+        return new CommandArgument<>(name, Arguments.string(), false, null, true);
+    }
+
+    public String usage() {
+        if (greedy) {
+            return "<" + name + "...>";
+        }
+
+        if (optional) {
+            return "[" + name + "]";
+        }
+
+        return "<" + name + ">";
     }
 }
