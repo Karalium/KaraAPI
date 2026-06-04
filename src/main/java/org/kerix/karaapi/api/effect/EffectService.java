@@ -2,14 +2,10 @@ package org.kerix.karaapi.api.effect;
 
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
-import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.kerix.karaapi.api.effect.geometry.Motif;
-import org.kerix.karaapi.api.effect.particle.ParticleStyle;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
+import org.kerix.karaapi.api.scheduler.ScheduledTaskHandle;
+import org.kerix.karaapi.api.scheduler.SchedulerService;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -22,17 +18,18 @@ import java.util.UUID;
 
 public final class EffectService implements Stoppable {
 
-    private final JavaPlugin plugin;
-
+    private final SchedulerService scheduler;
+    private final EffectEmitter emitter;
     private final Map<NamespacedKey, Effect> effects = new LinkedHashMap<>();
     private final Map<NamespacedKey, Motif> motifs = new LinkedHashMap<>();
     private final Map<UUID, RunningEffect> runningEffects = new LinkedHashMap<>();
 
-    private BukkitTask task;
+    private ScheduledTaskHandle task;
     private boolean stopped;
 
-    public EffectService(JavaPlugin plugin) {
-        this.plugin = Objects.requireNonNull(plugin, "plugin");
+    public EffectService(SchedulerService scheduler, EffectEmitter emitter) {
+        this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
+        this.emitter = Objects.requireNonNull(emitter, "emitter");
     }
 
     public void registerEffect(Effect effect) {
@@ -42,7 +39,7 @@ public final class EffectService implements Stoppable {
         NamespacedKey key = effect.key();
 
         if (effects.containsKey(key)) {
-            throw new IllegalArgumentException("Effect already registered: " + key);
+            throw new EffectException("Effect already registered: " + key);
         }
 
         effects.put(key, effect);
@@ -68,7 +65,7 @@ public final class EffectService implements Stoppable {
         Objects.requireNonNull(motif, "motif");
 
         if (motifs.containsKey(key)) {
-            throw new IllegalArgumentException("Motif already registered: " + key);
+            throw new EffectException("Motif already registered: " + key);
         }
 
         motifs.put(key, motif);
@@ -89,25 +86,32 @@ public final class EffectService implements Stoppable {
     }
 
     public EffectHandle play(NamespacedKey key, Location origin) {
-        return play(key, origin, EffectAudience.nearby(64));
+        return play(key, origin, EffectAudience.nearby(64.0));
     }
 
-    public EffectHandle play(NamespacedKey key, Location origin, EffectAudience audience) {
+    public EffectHandle play(
+            NamespacedKey key,
+            Location origin,
+            EffectAudience audience
+    ) {
         Objects.requireNonNull(key, "key");
 
         Effect effect = effect(key)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown effect: " + key));
+                .orElseThrow(() -> new EffectException("Unknown effect: " + key));
 
         return play(effect, origin, audience);
     }
 
     public EffectHandle play(Effect effect, Location origin) {
-        return play(effect, origin, EffectAudience.nearby(64));
+        return play(effect, origin, EffectAudience.nearby(64.0));
     }
 
-    public EffectHandle play(Effect effect, Location origin, EffectAudience audience) {
+    public EffectHandle play(
+            Effect effect,
+            Location origin,
+            EffectAudience audience
+    ) {
         ensureAlive();
-
         Objects.requireNonNull(effect, "effect");
         Objects.requireNonNull(origin, "origin");
         Objects.requireNonNull(audience, "audience");
@@ -119,6 +123,7 @@ public final class EffectService implements Stoppable {
                 effect,
                 origin.clone(),
                 audience,
+                emitter,
                 System.nanoTime()
         );
 
@@ -133,14 +138,6 @@ public final class EffectService implements Stoppable {
         handle.cancel();
     }
 
-    public int runningCount() {
-        return runningEffects.size();
-    }
-
-    public boolean stopped() {
-        return stopped;
-    }
-
     public void stopAll() {
         runningEffects.clear();
 
@@ -150,6 +147,14 @@ public final class EffectService implements Stoppable {
         }
     }
 
+    public int runningCount() {
+        return runningEffects.size();
+    }
+
+    public boolean stopped() {
+        return stopped;
+    }
+
     @Override
     public void stop() {
         if (stopped) {
@@ -157,21 +162,17 @@ public final class EffectService implements Stoppable {
         }
 
         stopped = true;
-
         stopAll();
-
         effects.clear();
         motifs.clear();
     }
 
     private void ensureTaskRunning() {
-        if (task != null) {
+        if (task != null && task.running()) {
             return;
         }
 
-        task = plugin.getServer()
-                .getScheduler()
-                .runTaskTimer(plugin, this::tick, 0L, 1L);
+        task = scheduler.timer(0L, 1L, this::tick);
     }
 
     private void tick() {
@@ -196,49 +197,6 @@ public final class EffectService implements Stoppable {
     private void ensureAlive() {
         if (stopped) {
             throw new IllegalStateException("EffectService has already been stopped.");
-        }
-    }
-
-    static final class BukkitEffectOutput implements EffectOutput {
-
-        private final Collection<Player> viewers;
-
-        BukkitEffectOutput(Collection<Player> viewers) {
-            this.viewers = List.copyOf(viewers);
-        }
-
-        @Override
-        public Collection<Player> viewers() {
-            return viewers;
-        }
-
-        @Override
-        public void particle(Location location, ParticleStyle style) {
-            for (Player viewer : viewers) {
-                viewer.spawnParticle(
-                        style.particle(),
-                        location,
-                        style.count(),
-                        style.offsetX(),
-                        style.offsetY(),
-                        style.offsetZ(),
-                        style.extra(),
-                        style.data()
-                );
-            }
-        }
-
-        @Override
-        public void sound(
-                Location location,
-                Sound sound,
-                SoundCategory category,
-                float volume,
-                float pitch
-        ) {
-            for (Player viewer : viewers) {
-                viewer.playSound(location, sound, category, volume, pitch);
-            }
         }
     }
 }

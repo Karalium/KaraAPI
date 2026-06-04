@@ -24,7 +24,10 @@ import org.kerix.karaapi.api.storage.StorageService;
 import org.kerix.karaapi.api.task.TaskService;
 import org.kerix.karaapi.api.tick.TickOrchestrator;
 import org.kerix.karaapi.api.ui.UiService;
+import org.kerix.karaapi.paper.effect.PaperEffectEmitter;
 import org.kerix.karaapi.paper.placeholder.PlaceholderProviders;
+import org.kerix.karaapi.paper.recipe.PaperRecipeRegistrar;
+import org.kerix.karaapi.paper.region.PaperRegionListener;
 import org.kerix.karaapi.paper.scheduler.SchedulerProvider;
 
 import java.util.Objects;
@@ -66,10 +69,17 @@ final class CoreServiceInstaller {
         ProfileService profiles = new ProfileService();
         CustomItemService customItems = new CustomItemService(hostPlugin);
         RequirementService requirements = new RequirementService();
-        RegionService regions = new RegionService();
         EventBus events = new EventBus(hostPlugin.getLogger());
-        RecipeService recipes = new RecipeService(hostPlugin);
-        EffectService effects = new EffectService(hostPlugin);
+        RegionService regions = new RegionService(events);
+
+        RecipeService recipes = new RecipeService(
+                hostPlugin,
+                new PaperRecipeRegistrar(hostPlugin)
+        );
+        EffectService effects = new EffectService(
+                scheduler,
+                new PaperEffectEmitter()
+        );
 
         BootstrapContext context = new BootstrapContext(
                 apiPlugin,
@@ -153,5 +163,7 @@ final class CoreServiceInstaller {
         services.bind(StartupAnnouncer.class, core.announcer());
         services.bind(CommandRegistrar.class, core.commands());
         services.bind(ListenerRegistrar.class, core.listeners());
+
+        core.listeners().register(new PaperRegionListener(core.regions()));
     }
 }

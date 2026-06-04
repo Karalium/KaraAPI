@@ -27,7 +27,7 @@ public interface EffectAudience {
     }
 
     static EffectAudience nearby(double radius) {
-        if (radius < 0) {
+        if (radius < 0.0) {
             throw new IllegalArgumentException("Radius cannot be negative.");
         }
 
@@ -50,11 +50,13 @@ public interface EffectAudience {
 
     static EffectAudience single(Player player) {
         Objects.requireNonNull(player, "player");
-
-        return origin -> List.of(player);
+        return origin -> player.isOnline() ? List.of(player) : List.of();
     }
 
-    static EffectAudience filtered(EffectAudience base, Predicate<Player> predicate) {
+    static EffectAudience filtered(
+            EffectAudience base,
+            Predicate<Player> predicate
+    ) {
         Objects.requireNonNull(base, "base");
         Objects.requireNonNull(predicate, "predicate");
 

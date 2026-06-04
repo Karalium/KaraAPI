@@ -35,7 +35,10 @@ public final class EffectBuilder {
         return this;
     }
 
-    public EffectBuilder particles(String name, Consumer<ParticleLayer.Builder> consumer) {
+    public EffectBuilder particles(
+            String name,
+            Consumer<ParticleLayer.Builder> consumer
+    ) {
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(consumer, "consumer");
 
@@ -45,7 +48,10 @@ public final class EffectBuilder {
         return component(builder.build());
     }
 
-    public EffectBuilder sound(String name, Consumer<SoundLayer.Builder> consumer) {
+    public EffectBuilder sound(
+            String name,
+            Consumer<SoundLayer.Builder> consumer
+    ) {
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(consumer, "consumer");
 
@@ -55,7 +61,10 @@ public final class EffectBuilder {
         return component(builder.build());
     }
 
-    public EffectBuilder ambient(String name, Consumer<AmbientSoundLayer.Builder> consumer) {
+    public EffectBuilder ambient(
+            String name,
+            Consumer<AmbientSoundLayer.Builder> consumer
+    ) {
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(consumer, "consumer");
 

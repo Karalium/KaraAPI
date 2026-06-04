@@ -3,7 +3,8 @@ package org.kerix.karaapi.api.ui;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.kerix.karaapi.paper.text.PaperText;
+
+import java.util.Objects;
 
 public final class Ui {
 
@@ -33,14 +34,19 @@ public final class Ui {
     }
 
     public static void send(Audience audience, Component message) {
-        PaperText.message(audience, message);
+        Objects.requireNonNull(audience, "audience");
+        audience.sendMessage(message == null ? Component.empty() : message);
     }
 
     public static void actionBar(Audience audience, Component message) {
-        PaperText.actionBar(audience, message);
+        Objects.requireNonNull(audience, "audience");
+        audience.sendActionBar(message == null ? Component.empty() : message);
     }
 
     public static void title(Audience audience, TitleMessage title) {
+        Objects.requireNonNull(audience, "audience");
+        Objects.requireNonNull(title, "title");
+
         title.send(audience);
     }
 }

@@ -2,13 +2,13 @@ package org.kerix.karaapi.api.effect;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public final class EffectHandle {
+public final class EffectHandle implements AutoCloseable {
 
     private final UUID id;
     private final Runnable cancelAction;
-
-    private boolean cancelled;
+    private final AtomicBoolean active = new AtomicBoolean(true);
 
     public EffectHandle(UUID id, Runnable cancelAction) {
         this.id = Objects.requireNonNull(id, "id");
@@ -19,16 +19,18 @@ public final class EffectHandle {
         return id;
     }
 
-    public boolean cancelled() {
-        return cancelled;
+    public boolean active() {
+        return active.get();
     }
 
     public void cancel() {
-        if (cancelled) {
-            return;
+        if (active.compareAndSet(true, false)) {
+            cancelAction.run();
         }
+    }
 
-        cancelled = true;
-        cancelAction.run();
+    @Override
+    public void close() {
+        cancel();
     }
 }

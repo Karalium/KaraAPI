@@ -13,6 +13,7 @@ final class RunningEffect {
     private final Effect effect;
     private final Location origin;
     private final EffectAudience audience;
+    private final EffectEmitter emitter;
     private final long seed;
 
     private int tick;
@@ -22,12 +23,14 @@ final class RunningEffect {
             Effect effect,
             Location origin,
             EffectAudience audience,
+            EffectEmitter emitter,
             long seed
     ) {
         this.id = Objects.requireNonNull(id, "id");
         this.effect = Objects.requireNonNull(effect, "effect");
         this.origin = Objects.requireNonNull(origin, "origin");
         this.audience = Objects.requireNonNull(audience, "audience");
+        this.emitter = Objects.requireNonNull(emitter, "emitter");
         this.seed = seed;
     }
 
@@ -42,7 +45,7 @@ final class RunningEffect {
                 seed
         );
 
-        EffectOutput output = new EffectService.BukkitEffectOutput(viewers);
+        EffectOutput output = new EffectOutput(emitter, viewers);
 
         for (EffectComponent component : effect.components()) {
             component.tick(context, output);

@@ -10,7 +10,10 @@ public final class Effects {
     private Effects() {
     }
 
-    public static Effect describe(NamespacedKey key, Consumer<EffectBuilder> consumer) {
+    public static Effect describe(
+            NamespacedKey key,
+            Consumer<EffectBuilder> consumer
+    ) {
         Objects.requireNonNull(key, "key");
         Objects.requireNonNull(consumer, "consumer");
 
@@ -18,5 +21,9 @@ public final class Effects {
         consumer.accept(builder);
 
         return builder.build();
+    }
+
+    public static EffectBuilder effect(NamespacedKey key) {
+        return new EffectBuilder(key);
     }
 }

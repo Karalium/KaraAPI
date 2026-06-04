@@ -2,6 +2,7 @@ package org.kerix.karaapi.api.menu;
 
 import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.ItemStack;
+import org.kerix.karaapi.api.item.ItemProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,11 +27,15 @@ public final class PaginatedMenu {
             IntFunction<Component> titleRenderer
     ) {
         this.title = Objects.requireNonNull(title, "title");
-        this.rows = rows;
+        this.rows = validateRows(rows);
         this.content = List.copyOf(content);
         this.contentSlots = contentSlots.clone();
         this.controls = Objects.requireNonNull(controls, "controls");
         this.titleRenderer = titleRenderer;
+
+        if (contentSlots.length == 0) {
+            throw new IllegalArgumentException("Paginated menu needs at least one content slot.");
+        }
     }
 
     public static PaginatedMenu of(
@@ -43,11 +48,47 @@ public final class PaginatedMenu {
         return new PaginatedMenu(
                 title,
                 rows,
-                content,
+                content == null ? List.of() : content,
                 contentSlots,
                 controls,
                 null
         );
+    }
+
+    public static PaginatedMenu ofItems(
+            Component title,
+            int rows,
+            List<ItemStack> content,
+            int[] contentSlots,
+            PaginationControls controls
+    ) {
+        List<MenuItem> items = new ArrayList<>();
+
+        if (content != null) {
+            for (ItemStack item : content) {
+                items.add(MenuItem.of(item));
+            }
+        }
+
+        return of(title, rows, items, contentSlots, controls);
+    }
+
+    public static PaginatedMenu ofProviders(
+            Component title,
+            int rows,
+            List<? extends ItemProvider> content,
+            int[] contentSlots,
+            PaginationControls controls
+    ) {
+        List<MenuItem> items = new ArrayList<>();
+
+        if (content != null) {
+            for (ItemProvider provider : content) {
+                items.add(MenuItem.of(provider.build()));
+            }
+        }
+
+        return of(title, rows, items, contentSlots, controls);
     }
 
     public PaginatedMenu titleRenderer(IntFunction<Component> renderer) {
@@ -57,21 +98,13 @@ public final class PaginatedMenu {
                 content,
                 contentSlots,
                 controls,
-                renderer
+                Objects.requireNonNull(renderer, "renderer")
         );
     }
 
     public Menu page(int page) {
-        int safePage = Math.max(0, page);
-        int maxPage = maxPage();
-
-        if (safePage > maxPage) {
-            safePage = maxPage;
-        }
-
-        Component renderedTitle = titleRenderer == null
-                ? title
-                : titleRenderer.apply(safePage);
+        int safePage = Math.max(0, Math.min(page, maxPage()));
+        Component renderedTitle = titleRenderer == null ? title : titleRenderer.apply(safePage);
 
         MenuBuilder builder = Menu.builder(renderedTitle, rows);
 
@@ -109,11 +142,13 @@ public final class PaginatedMenu {
                 }
         );
 
-        builder.slot(
-                controls.backSlot(),
-                controls.back(),
-                MenuClick::closeNextTick
-        );
+        if (controls.hasBack()) {
+            builder.slot(
+                    controls.backSlot(),
+                    controls.back(),
+                    MenuClick::closeNextTick
+            );
+        }
 
         return builder.build();
     }
@@ -123,7 +158,10 @@ public final class PaginatedMenu {
             return 0;
         }
 
-        return Math.max(0, (int) Math.ceil(content.size() / (double) contentSlots.length) - 1);
+        return Math.max(
+                0,
+                (int) Math.ceil(content.size() / (double) contentSlots.length) - 1
+        );
     }
 
     public int pageCount() {
@@ -140,6 +178,14 @@ public final class PaginatedMenu {
             int startColumn,
             int endColumn
     ) {
+        if (startRow < 0 || endRow > 5 || startRow > endRow) {
+            throw new IllegalArgumentException("Invalid row range.");
+        }
+
+        if (startColumn < 0 || endColumn > 8 || startColumn > endColumn) {
+            throw new IllegalArgumentException("Invalid column range.");
+        }
+
         List<Integer> slots = new ArrayList<>();
 
         for (int row = startRow; row <= endRow; row++) {
@@ -149,5 +195,13 @@ public final class PaginatedMenu {
         }
 
         return slots.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    private static int validateRows(int rows) {
+        if (rows < 1 || rows > 6) {
+            throw new IllegalArgumentException("Menu rows must be between 1 and 6.");
+        }
+
+        return rows;
     }
 }

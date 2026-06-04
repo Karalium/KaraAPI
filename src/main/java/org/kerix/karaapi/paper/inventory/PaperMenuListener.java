@@ -16,6 +16,7 @@ import org.kerix.karaapi.api.menu.MenuOpen;
 import org.kerix.karaapi.api.menu.MenuService;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public final class PaperMenuListener implements Listener {
 
@@ -38,8 +39,6 @@ public final class PaperMenuListener implements Listener {
         }
 
         Menu menu = holder.menu();
-
-
 
         menu.handleOpen(new MenuOpen(
                 menus,
@@ -114,6 +113,11 @@ public final class PaperMenuListener implements Listener {
 
     public boolean isKaraMenu(Inventory inventory) {
         return holder(inventory) != null;
+    }
+
+    public Optional<Menu> menu(Inventory inventory) {
+        PaperMenuHolder holder = holder(inventory);
+        return holder == null ? Optional.empty() : Optional.of(holder.menu());
     }
 
     private PaperMenuHolder holder(Inventory inventory) {

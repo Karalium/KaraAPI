@@ -3,12 +3,9 @@ package org.kerix.karaapi.api.menu;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.kerix.karaapi.paper.inventory.PaperInventories;
-import org.kerix.karaapi.paper.inventory.PaperMenuHolder;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -49,21 +46,11 @@ public final class Menu {
     }
 
     public Inventory createInventory(MenuService menus, Player viewer) {
-        PaperMenuHolder holder = new PaperMenuHolder(menus, this, viewer.getUniqueId());
-        Inventory inventory = PaperInventories.chest(holder, rows, title);
-
-        holder.inventory(inventory);
-
-        for (Map.Entry<Integer, MenuItem> entry : items.entrySet()) {
-            inventory.setItem(entry.getKey(), entry.getValue().item());
-        }
-
-        return inventory;
+        return menus.createInventory(this, viewer);
     }
 
     public void open(MenuService menus, Player player) {
-        Inventory inventory = createInventory(menus, player);
-        player.openInventory(inventory);
+        menus.open(player, this);
     }
 
     public Component title() {
@@ -128,6 +115,36 @@ public final class Menu {
         }
 
         return builder;
+    }
+
+    public Menu withItem(int slot, MenuItem item) {
+        Map<Integer, MenuItem> copy = new LinkedHashMap<>(items);
+        copy.put(slot, Objects.requireNonNull(item, "item"));
+
+        return new Menu(
+                title,
+                rows,
+                copy,
+                cancelClicks,
+                allowPlayerInventoryClicks,
+                openAction,
+                closeAction
+        );
+    }
+
+    public Menu withoutItem(int slot) {
+        Map<Integer, MenuItem> copy = new LinkedHashMap<>(items);
+        copy.remove(slot);
+
+        return new Menu(
+                title,
+                rows,
+                copy,
+                cancelClicks,
+                allowPlayerInventoryClicks,
+                openAction,
+                closeAction
+        );
     }
 
     private static int validateRows(int rows) {

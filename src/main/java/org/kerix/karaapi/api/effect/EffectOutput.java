@@ -7,18 +7,34 @@ import org.bukkit.entity.Player;
 import org.kerix.karaapi.api.effect.particle.ParticleStyle;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
-public interface EffectOutput {
+public final class EffectOutput {
 
-    Collection<Player> viewers();
+    private final EffectEmitter emitter;
+    private final Collection<Player> viewers;
 
-    void particle(Location location, ParticleStyle style);
+    public EffectOutput(EffectEmitter emitter, Collection<Player> viewers) {
+        this.emitter = Objects.requireNonNull(emitter, "emitter");
+        this.viewers = List.copyOf(Objects.requireNonNull(viewers, "viewers"));
+    }
 
-    void sound(
+    public Collection<Player> viewers() {
+        return viewers;
+    }
+
+    public void particle(Location location, ParticleStyle style) {
+        emitter.particle(viewers, location, style);
+    }
+
+    public void sound(
             Location location,
             Sound sound,
             SoundCategory category,
             float volume,
             float pitch
-    );
+    ) {
+        emitter.sound(viewers, location, sound, category, volume, pitch);
+    }
 }

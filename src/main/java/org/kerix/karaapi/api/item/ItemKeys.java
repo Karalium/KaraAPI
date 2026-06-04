@@ -13,15 +13,26 @@ public final class ItemKeys {
 
     public static NamespacedKey of(JavaPlugin plugin, String key) {
         Objects.requireNonNull(plugin, "plugin");
-        Objects.requireNonNull(key, "key");
-
         return new NamespacedKey(plugin, normalize(key));
     }
 
-    private static String normalize(String key) {
-        return key
+    public static String normalize(String key) {
+        Objects.requireNonNull(key, "key");
+
+        String normalized = key
                 .trim()
                 .toLowerCase(Locale.ROOT)
-                .replace(' ', '_');
+                .replace(' ', '_')
+                .replace('-', '_');
+
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("Item key cannot be blank.");
+        }
+
+        if (!normalized.matches("[a-z0-9_./]+")) {
+            throw new IllegalArgumentException("Invalid item key: " + key);
+        }
+
+        return normalized;
     }
 }

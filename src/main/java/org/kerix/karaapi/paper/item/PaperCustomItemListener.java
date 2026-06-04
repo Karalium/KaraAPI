@@ -35,7 +35,7 @@ public final class PaperCustomItemListener implements Listener {
         ItemStack item = event.getItem();
 
         service.customItemOf(item).ifPresent(customItem ->
-                customItem.onInteract(new CustomItemInteract(
+                service.dispatchInteract(new CustomItemInteract(
                         service,
                         customItem,
                         event,
@@ -55,7 +55,7 @@ public final class PaperCustomItemListener implements Listener {
         ItemStack item = player.getInventory().getItemInMainHand();
 
         service.customItemOf(item).ifPresent(customItem ->
-                customItem.onAttack(new CustomItemAttack(
+                service.dispatchAttack(new CustomItemAttack(
                         service,
                         customItem,
                         event,
@@ -75,7 +75,7 @@ public final class PaperCustomItemListener implements Listener {
         ItemStack item = event.getCurrentItem();
 
         service.customItemOf(item).ifPresent(customItem ->
-                customItem.onInventoryClick(new CustomItemInventoryClick(
+                service.dispatchInventoryClick(new CustomItemInventoryClick(
                         service,
                         customItem,
                         event,

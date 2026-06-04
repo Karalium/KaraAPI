@@ -1,39 +1,54 @@
 package org.kerix.karaapi.api.item.custom;
 
-import net.md_5.bungee.api.chat.hover.content.Item;
 import org.bukkit.NamespacedKey;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.item.ItemKeys;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
+import org.kerix.karaapi.api.logic.Cooldowns;
 import org.kerix.karaapi.api.registry.MutableRegistry;
+import org.kerix.karaapi.api.requirement.RequirementResult;
+import org.kerix.karaapi.api.startup.ListenerRegistration;
 import org.kerix.karaapi.paper.item.PaperCustomItemListener;
 import org.kerix.karaapi.paper.listener.PaperListenerRegistrar;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 public final class CustomItemService implements Stoppable {
 
     private final JavaPlugin hostPlugin;
     private final NamespacedKey itemIdKey;
-    private final MutableRegistry<CustomItem> items =
-            MutableRegistry.create("custom_items");
+    private final MutableRegistry<CustomItem> items = MutableRegistry.create("custom_items");
+    private final Map<String, Cooldowns<UUID>> cooldowns = new HashMap<>();
+    private final ListenerRegistration listenerRegistration;
+
+    private boolean stopped;
 
     public CustomItemService(JavaPlugin hostPlugin) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
         this.itemIdKey = new NamespacedKey(hostPlugin, "custom_item_id");
-
-        new PaperListenerRegistrar(hostPlugin)
+        this.listenerRegistration = new PaperListenerRegistrar(hostPlugin)
                 .register(new PaperCustomItemListener(this));
     }
 
     public void register(CustomItem item) {
+        ensureRunning();
         Objects.requireNonNull(item, "item");
 
         items.register(normalize(item.id()), item);
+    }
+
+    public void register(CustomItemBuilder builder) {
+        Objects.requireNonNull(builder, "builder");
+        register(builder.build());
     }
 
     public CustomItem get(String id) {
@@ -45,16 +60,16 @@ public final class CustomItemService implements Stoppable {
     }
 
     public ItemStack create(String id) {
-        CustomItem item = get(id);
+        ensureRunning();
 
-        return tag(item.create(), item.id());
+        CustomItem item = get(id);
+        return tag(item.build(), item.id());
     }
 
     public ItemStack tag(ItemStack item, String id) {
         Objects.requireNonNull(item, "item");
 
         ItemStack copy = item.clone();
-
         ItemMeta meta = copy.getItemMeta();
 
         if (meta == null) {
@@ -91,13 +106,25 @@ public final class CustomItemService implements Stoppable {
     }
 
     public boolean isCustomItem(ItemStack item) {
-        return idOf(item).isPresent();
+        return customItemOf(item).isPresent();
     }
 
     public boolean is(ItemStack item, String id) {
         return idOf(item)
                 .map(found -> found.equals(normalize(id)))
                 .orElse(false);
+    }
+
+    public void dispatchInteract(CustomItemInteract event) {
+        dispatch(event.customItem(), event.player(), () -> event.customItem().onInteract(event));
+    }
+
+    public void dispatchAttack(CustomItemAttack event) {
+        dispatch(event.customItem(), event.player(), () -> event.customItem().onAttack(event));
+    }
+
+    public void dispatchInventoryClick(CustomItemInventoryClick event) {
+        dispatch(event.customItem(), event.player(), () -> event.customItem().onInventoryClick(event));
     }
 
     public NamespacedKey itemIdKey() {
@@ -114,18 +141,67 @@ public final class CustomItemService implements Stoppable {
 
     @Override
     public void stop() {
+        if (stopped) {
+            return;
+        }
+
+        stopped = true;
+        listenerRegistration.unregister();
         items.clear();
+        cooldowns.clear();
+    }
+
+    private void dispatch(CustomItem item, Player player, Runnable action) {
+        ensureRunning();
+
+        RequirementResult result = item.check(player);
+
+        if (result.denied()) {
+            return;
+        }
+
+        if (!consumeCooldown(item, player)) {
+            return;
+        }
+
+        action.run();
+    }
+
+    private boolean consumeCooldown(CustomItem item, Player player) {
+        Optional<java.time.Duration> cooldown = item.cooldown();
+
+        if (cooldown.isEmpty()) {
+            return true;
+        }
+
+        String id = normalize(item.id());
+
+        Cooldowns<UUID> itemCooldowns = cooldowns.computeIfAbsent(
+                id,
+                ignored -> new Cooldowns<>()
+        );
+
+        return itemCooldowns.tryUse(player.getUniqueId(), cooldown.get());
+    }
+
+    private void ensureRunning() {
+        if (stopped) {
+            throw new IllegalStateException("CustomItemService has already stopped.");
+        }
     }
 
     private static String normalize(String id) {
         Objects.requireNonNull(id, "id");
 
-        if (id.isBlank()) {
+        String normalized = id.trim()
+                .toLowerCase(Locale.ROOT)
+                .replace(" ", "_")
+                .replace("-", "_");
+
+        if (normalized.isBlank()) {
             throw new IllegalArgumentException("Custom item id cannot be blank.");
         }
 
-        return id.trim()
-                .toLowerCase(Locale.ROOT)
-                .replace(" ", "_");
+        return ItemKeys.normalize(normalized);
     }
 }

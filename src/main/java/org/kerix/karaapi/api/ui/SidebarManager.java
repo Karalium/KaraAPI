@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public final class SidebarManager {
@@ -12,6 +13,9 @@ public final class SidebarManager {
     private final Map<UUID, Sidebar> sidebars = new HashMap<>();
 
     public Sidebar getOrCreate(Player player, Component title) {
+        Objects.requireNonNull(player, "player");
+        Objects.requireNonNull(title, "title");
+
         Sidebar sidebar = sidebars.get(player.getUniqueId());
 
         if (sidebar != null) {
@@ -26,6 +30,8 @@ public final class SidebarManager {
     }
 
     public void remove(Player player) {
+        Objects.requireNonNull(player, "player");
+
         Sidebar sidebar = sidebars.remove(player.getUniqueId());
 
         if (sidebar != null) {
@@ -39,5 +45,14 @@ public final class SidebarManager {
         }
 
         sidebars.clear();
+    }
+
+    public int size() {
+        return sidebars.size();
+    }
+
+    public boolean has(Player player) {
+        Objects.requireNonNull(player, "player");
+        return sidebars.containsKey(player.getUniqueId());
     }
 }
