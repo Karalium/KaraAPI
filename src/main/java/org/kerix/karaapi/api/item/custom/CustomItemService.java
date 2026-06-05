@@ -11,9 +11,6 @@ import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.logic.Cooldowns;
 import org.kerix.karaapi.api.registry.MutableRegistry;
 import org.kerix.karaapi.api.requirement.RequirementResult;
-import org.kerix.karaapi.api.startup.ListenerRegistration;
-import org.kerix.karaapi.paper.item.PaperCustomItemListener;
-import org.kerix.karaapi.paper.listener.PaperListenerRegistrar;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -28,15 +25,12 @@ public final class CustomItemService implements Stoppable {
     private final NamespacedKey itemIdKey;
     private final MutableRegistry<CustomItem> items = MutableRegistry.create("custom_items");
     private final Map<String, Cooldowns<UUID>> cooldowns = new HashMap<>();
-    private final ListenerRegistration listenerRegistration;
 
     private boolean stopped;
 
     public CustomItemService(JavaPlugin hostPlugin) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
         this.itemIdKey = new NamespacedKey(hostPlugin, "custom_item_id");
-        this.listenerRegistration = new PaperListenerRegistrar(hostPlugin)
-                .register(new PaperCustomItemListener(this));
     }
 
     public void register(CustomItem item) {
@@ -146,7 +140,6 @@ public final class CustomItemService implements Stoppable {
         }
 
         stopped = true;
-        listenerRegistration.unregister();
         items.clear();
         cooldowns.clear();
     }

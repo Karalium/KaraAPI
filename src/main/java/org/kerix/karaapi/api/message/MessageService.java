@@ -73,6 +73,23 @@ public final class MessageService implements Stoppable {
         return main().component(player, key, set);
     }
 
+    public Component gradient(String raw, String... colors) {
+        return renderer.gradient(raw, colors);
+    }
+
+    public Component gradient(OfflinePlayer player, String raw, String... colors) {
+        return renderer.gradient(player, raw, colors);
+    }
+
+    public Component gradient(
+            OfflinePlayer player,
+            String raw,
+            PlaceholderSet set,
+            String... colors
+    ) {
+        return renderer.gradient(player, raw, set, colors);
+    }
+
     public void send(Audience audience, String raw) {
         send(audience, raw, PlaceholderSet.empty());
     }

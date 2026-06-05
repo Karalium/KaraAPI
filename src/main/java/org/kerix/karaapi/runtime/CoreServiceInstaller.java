@@ -24,11 +24,9 @@ import org.kerix.karaapi.api.storage.StorageService;
 import org.kerix.karaapi.api.task.TaskService;
 import org.kerix.karaapi.api.tick.TickOrchestrator;
 import org.kerix.karaapi.api.ui.UiService;
-import org.kerix.karaapi.paper.effect.PaperEffectEmitter;
-import org.kerix.karaapi.paper.placeholder.PlaceholderProviders;
-import org.kerix.karaapi.paper.recipe.PaperRecipeRegistrar;
+import org.kerix.karaapi.paper.inventory.PaperMenuListener;
+import org.kerix.karaapi.paper.item.PaperCustomItemListener;
 import org.kerix.karaapi.paper.region.PaperRegionListener;
-import org.kerix.karaapi.paper.scheduler.SchedulerProvider;
 
 import java.util.Objects;
 
@@ -43,43 +41,45 @@ final class CoreServiceInstaller {
 
         ServiceContainer services = new ServiceContainer(hostPlugin.getLogger());
 
-        SchedulerService scheduler = SchedulerProvider.create(hostPlugin);
+        CoreAdapters adapters = PaperAdapterInstaller.install(hostPlugin);
+
+        SchedulerService scheduler = adapters.scheduler();
 
         TickOrchestrator ticks = new TickOrchestrator(hostPlugin, scheduler);
         ConfigService configs = new ConfigService(hostPlugin);
         TaskService tasks = new TaskService(hostPlugin, scheduler);
-        UiService ui = new UiService(hostPlugin);
-        MenuService menus = new MenuService(hostPlugin, scheduler);
+        UiService ui = new UiService(hostPlugin, adapters.sidebars());
+        MenuService menus = new MenuService(hostPlugin, scheduler, adapters.menuInventories());
 
         PlaceholderService placeholders = new PlaceholderService(
                 hostPlugin,
-                PlaceholderProviders.create(hostPlugin)
+                adapters.placeholderProviders(),
+                adapters.placeholderExpansions()
         );
 
         MessageService messages = new MessageService(hostPlugin, configs, placeholders);
-
-        ui.messages(messages);
 
         RegistryService registries = new RegistryService();
         StorageService storage = new StorageService(hostPlugin);
         StartupProfile profile = StartupProfile.from(hostPlugin);
         StartupAnnouncer announcer = new StartupAnnouncer(hostPlugin.getLogger(), profile);
+
         CommandRegistrar commands = new CommandRegistrar(hostPlugin);
         ListenerRegistrar listeners = new ListenerRegistrar(hostPlugin);
+
         ProfileService profiles = new ProfileService();
         CustomItemService customItems = new CustomItemService(hostPlugin);
         RequirementService requirements = new RequirementService();
+
         EventBus events = new EventBus(hostPlugin.getLogger());
         RegionService regions = new RegionService(events);
 
-        RecipeService recipes = new RecipeService(
-                hostPlugin,
-                new PaperRecipeRegistrar(hostPlugin)
-        );
-        EffectService effects = new EffectService(
-                scheduler,
-                new PaperEffectEmitter()
-        );
+        RecipeService recipes = new RecipeService(hostPlugin, adapters.recipes());
+        EffectService effects = new EffectService(scheduler, adapters.effects());
+
+        listeners.register(new PaperMenuListener(menus));
+        listeners.register(new PaperCustomItemListener(customItems));
+        listeners.register(new PaperRegionListener(regions));
 
         BootstrapContext context = new BootstrapContext(
                 apiPlugin,
@@ -163,7 +163,5 @@ final class CoreServiceInstaller {
         services.bind(StartupAnnouncer.class, core.announcer());
         services.bind(CommandRegistrar.class, core.commands());
         services.bind(ListenerRegistrar.class, core.listeners());
-
-        core.listeners().register(new PaperRegionListener(core.regions()));
     }
 }

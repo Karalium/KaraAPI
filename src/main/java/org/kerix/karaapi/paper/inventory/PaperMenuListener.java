@@ -40,6 +40,8 @@ public final class PaperMenuListener implements Listener {
 
         Menu menu = holder.menu();
 
+        menus.trackOpen(player , menu);
+
         menu.handleOpen(new MenuOpen(
                 menus,
                 menu,
@@ -102,6 +104,8 @@ public final class PaperMenuListener implements Listener {
         }
 
         Menu menu = holder.menu();
+
+        menus.trackClose(player);
 
         menu.handleClose(new MenuClose(
                 menus,
