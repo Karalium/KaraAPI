@@ -10,7 +10,12 @@ import java.util.UUID;
 
 public final class SidebarManager {
 
+    private final SidebarRendererFactory rendererFactory;
     private final Map<UUID, Sidebar> sidebars = new HashMap<>();
+
+    public SidebarManager(SidebarRendererFactory rendererFactory) {
+        this.rendererFactory = Objects.requireNonNull(rendererFactory, "rendererFactory");
+    }
 
     public Sidebar getOrCreate(Player player, Component title) {
         Objects.requireNonNull(player, "player");
@@ -23,7 +28,7 @@ public final class SidebarManager {
             return sidebar;
         }
 
-        sidebar = new Sidebar(player, title);
+        sidebar = new Sidebar(rendererFactory.create(player, title));
         sidebars.put(player.getUniqueId(), sidebar);
 
         return sidebar;

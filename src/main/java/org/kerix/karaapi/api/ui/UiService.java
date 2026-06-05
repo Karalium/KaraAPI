@@ -20,9 +20,9 @@ public final class UiService implements Stoppable {
 
     private MessageService messages;
 
-    public UiService(JavaPlugin hostPlugin) {
+    public UiService(JavaPlugin hostPlugin, SidebarRendererFactory sidebarRendererFactory) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
-        this.sidebars = new SidebarManager();
+        this.sidebars = new SidebarManager(sidebarRendererFactory);
     }
 
     public void messages(MessageService messages) {

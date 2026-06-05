@@ -5,20 +5,21 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.scheduler.SchedulerService;
-import org.kerix.karaapi.api.startup.ListenerRegistration;
 import org.kerix.karaapi.paper.inventory.PaperMenuInventoryFactory;
-import org.kerix.karaapi.paper.inventory.PaperMenuListener;
-import org.kerix.karaapi.paper.listener.PaperListenerRegistrar;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class MenuService implements Stoppable {
 
     private final JavaPlugin hostPlugin;
     private final SchedulerService scheduler;
     private final MenuInventoryFactory inventoryFactory;
-    private final PaperMenuListener listener;
-    private final ListenerRegistration listenerRegistration;
+
+    private final Map<UUID, Menu> openMenus = new ConcurrentHashMap<>();
 
     private boolean stopped;
 
@@ -34,8 +35,6 @@ public final class MenuService implements Stoppable {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.inventoryFactory = Objects.requireNonNull(inventoryFactory, "inventoryFactory");
-        this.listener = new PaperMenuListener(this);
-        this.listenerRegistration = new PaperListenerRegistrar(hostPlugin).register(listener);
     }
 
     public void open(Player player, Menu menu) {
@@ -61,9 +60,7 @@ public final class MenuService implements Stoppable {
 
         ensureRunning();
 
-        Inventory topInventory = player.getOpenInventory().getTopInventory();
-
-        listener.menu(topInventory).ifPresent(menu -> open(player, menu));
+        openMenu(player).ifPresent(menu -> open(player, menu));
     }
 
     public void refreshNextTick(Player player) {
@@ -95,8 +92,8 @@ public final class MenuService implements Stoppable {
         return inventoryFactory.create(this, menu, viewer);
     }
 
-    public boolean owns(Inventory inventory) {
-        return listener.isKaraMenu(inventory);
+    public boolean owns(Player player) {
+        return hasOpenMenu(player);
     }
 
     public JavaPlugin hostPlugin() {
@@ -118,15 +115,39 @@ public final class MenuService implements Stoppable {
         }
 
         stopped = true;
-        listenerRegistration.unregister();
 
         for (Player player : hostPlugin.getServer().getOnlinePlayers()) {
-            Inventory topInventory = player.getOpenInventory().getTopInventory();
-
-            if (listener.isKaraMenu(topInventory)) {
+            if (hasOpenMenu(player)) {
                 player.closeInventory();
             }
         }
+
+        openMenus.clear();
+    }
+
+    public void trackOpen(Player player, Menu menu) {
+        Objects.requireNonNull(player, "player");
+        Objects.requireNonNull(menu, "menu");
+
+        if (!stopped) {
+            openMenus.put(player.getUniqueId(), menu);
+        }
+    }
+
+    public void trackClose(Player player) {
+        if (player != null) {
+            openMenus.remove(player.getUniqueId());
+        }
+    }
+
+    public Optional<Menu> openMenu(Player player) {
+        Objects.requireNonNull(player, "player");
+        return Optional.ofNullable(openMenus.get(player.getUniqueId()));
+    }
+
+    public boolean hasOpenMenu(Player player) {
+        Objects.requireNonNull(player, "player");
+        return openMenus.containsKey(player.getUniqueId());
     }
 
     private void openNow(Player player, Menu menu) {

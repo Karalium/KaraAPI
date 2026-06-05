@@ -1,8 +1,6 @@
 package org.kerix.karaapi.api.ui;
 
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
-import org.kerix.karaapi.paper.scoreboard.PaperSidebarRenderer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -10,13 +8,10 @@ import java.util.Objects;
 
 public final class Sidebar {
 
-    private final PaperSidebarRenderer renderer;
+    private final SidebarRenderer renderer;
 
-    public Sidebar(Player player, Component title) {
-        this.renderer = new PaperSidebarRenderer(
-                Objects.requireNonNull(player, "player"),
-                Objects.requireNonNull(title, "title")
-        );
+    Sidebar(SidebarRenderer renderer) {
+        this.renderer = Objects.requireNonNull(renderer, "renderer");
     }
 
     public Sidebar title(Component title) {
@@ -29,7 +24,7 @@ public final class Sidebar {
     }
 
     public Sidebar lines(List<Component> lines) {
-        renderer.lines(List.copyOf(lines));
+        renderer.lines(List.copyOf(Objects.requireNonNull(lines, "lines")));
         return this;
     }
 
