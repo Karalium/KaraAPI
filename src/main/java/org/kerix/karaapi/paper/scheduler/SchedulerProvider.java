@@ -13,10 +13,6 @@ public final class SchedulerProvider {
     public static SchedulerService create(JavaPlugin plugin) {
         Objects.requireNonNull(plugin, "plugin");
 
-        if (FoliaSchedulerExecutor.available()) {
-            return new SchedulerService(new FoliaSchedulerExecutor(plugin));
-        }
-
         return new SchedulerService(new BukkitSchedulerExecutor(plugin));
     }
 }

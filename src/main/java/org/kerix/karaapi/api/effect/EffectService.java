@@ -2,7 +2,6 @@ package org.kerix.karaapi.api.effect;
 
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.kerix.karaapi.api.annotation.ApiBoundary;
 import org.kerix.karaapi.api.annotation.DependsOn;
 import org.kerix.karaapi.api.annotation.MainThread;
 import org.kerix.karaapi.api.annotation.ManagedService;
@@ -11,8 +10,8 @@ import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.scheduler.ScheduledTaskHandle;
 import org.kerix.karaapi.api.scheduler.SchedulerService;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,12 +30,14 @@ public final class EffectService implements Stoppable {
 
     private final SchedulerService scheduler;
     private final EffectEmitter emitter;
+
     private final Map<NamespacedKey, Effect> effects = new LinkedHashMap<>();
     private final Map<NamespacedKey, Motif> motifs = new LinkedHashMap<>();
     private final Map<UUID, RunningEffect> runningEffects = new LinkedHashMap<>();
 
     private ScheduledTaskHandle task;
     private boolean stopped;
+    private boolean ticking;
 
     public EffectService(SchedulerService scheduler, EffectEmitter emitter) {
         this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
@@ -141,7 +142,7 @@ public final class EffectService implements Stoppable {
         runningEffects.put(id, runningEffect);
         ensureTaskRunning();
 
-        return new EffectHandle(id, () -> runningEffects.remove(id));
+        return new EffectHandle(id, () -> cancelRunningEffect(id));
     }
 
     public void stop(EffectHandle handle) {
@@ -151,11 +152,7 @@ public final class EffectService implements Stoppable {
 
     public void stopAll() {
         runningEffects.clear();
-
-        if (task != null) {
-            task.cancel();
-            task = null;
-        }
+        cancelTaskSafely();
     }
 
     public int runningCount() {
@@ -173,35 +170,120 @@ public final class EffectService implements Stoppable {
         }
 
         stopped = true;
+
         stopAll();
+
         effects.clear();
         motifs.clear();
     }
 
     private void ensureTaskRunning() {
-        if (task != null && task.running()) {
+        if (stopped) {
             return;
         }
 
-        task = scheduler.timer(0L, 1L, this::tick);
+        if (isTaskRunning()) {
+            return;
+        }
+
+        task = scheduler.timer(0L, 1L, this::tickSafely);
+    }
+
+    private boolean isTaskRunning() {
+        if (task == null) {
+            return false;
+        }
+
+        try {
+            return task.running();
+        } catch (RuntimeException ignored) {
+            return !task.cancelled();
+        }
+    }
+
+    private void tickSafely() {
+        if (stopped) {
+            cancelTaskSafely();
+            return;
+        }
+
+        if (ticking) {
+            return;
+        }
+
+        ticking = true;
+
+        try {
+            tick();
+        } catch (Throwable throwable) {
+            /*
+             * Do not allow one broken effect layer/emitter/scheduler cleanup path
+             * to permanently crash the scheduler task.
+             *
+             * The broken effect queue is cleared because continuing to tick after
+             * an unchecked exception may spam the server every tick.
+             */
+            runningEffects.clear();
+            cancelTaskSafely();
+
+            throw throwable;
+        } finally {
+            ticking = false;
+        }
     }
 
     private void tick() {
-        Iterator<RunningEffect> iterator = runningEffects.values().iterator();
+        if (runningEffects.isEmpty()) {
+            cancelTaskSafely();
+            return;
+        }
 
-        while (iterator.hasNext()) {
-            RunningEffect runningEffect = iterator.next();
+        List<RunningEffect> snapshot = new ArrayList<>(runningEffects.values());
+        List<UUID> finished = new ArrayList<>();
 
+        for (RunningEffect runningEffect : snapshot) {
             runningEffect.tick();
 
             if (runningEffect.finished()) {
-                iterator.remove();
+                finished.add(runningEffect.id);
             }
         }
 
-        if (runningEffects.isEmpty() && task != null) {
-            task.cancel();
-            task = null;
+        for (UUID id : finished) {
+            runningEffects.remove(id);
+        }
+
+        if (runningEffects.isEmpty()) {
+            cancelTaskSafely();
+        }
+    }
+
+    private void cancelRunningEffect(UUID id) {
+        if (id == null) {
+            return;
+        }
+
+        runningEffects.remove(id);
+
+        if (runningEffects.isEmpty()) {
+            cancelTaskSafely();
+        }
+    }
+
+    private void cancelTaskSafely() {
+        ScheduledTaskHandle currentTask = task;
+        task = null;
+
+        if (currentTask == null) {
+            return;
+        }
+
+        try {
+            if (!currentTask.cancelled()) {
+                currentTask.cancel();
+            }
+        } catch (RuntimeException ignored) {
+
         }
     }
 

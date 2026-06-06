@@ -9,7 +9,7 @@ import java.util.UUID;
 
 final class RunningEffect {
 
-    private final UUID id;
+    final UUID id;
     private final Effect effect;
     private final Location origin;
     private final EffectAudience audience;
