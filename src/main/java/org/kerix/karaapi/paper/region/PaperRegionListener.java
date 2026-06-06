@@ -8,10 +8,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.kerix.karaapi.api.annotation.MainThread;
 import org.kerix.karaapi.api.region.RegionService;
 
 import java.util.Objects;
 
+
+@MainThread
 public final class PaperRegionListener implements Listener {
 
     private final RegionService regions;

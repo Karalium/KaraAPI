@@ -6,6 +6,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.DependsOn;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.config.ConfigService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.placeholder.PlaceholderService;
@@ -15,6 +18,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+@ManagedService(
+        value = MessageService.class,
+        priority = 40,
+        registerAnnotatedTicks = false
+)
+@DependsOn({
+        ConfigService.class,
+        PlaceholderService.class
+})
 public final class MessageService implements Stoppable {
 
     private final JavaPlugin hostPlugin;

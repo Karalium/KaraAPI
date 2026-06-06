@@ -3,9 +3,12 @@ package org.kerix.karaapi.api.menu;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.DependsOn;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.scheduler.SchedulerService;
-import org.kerix.karaapi.paper.inventory.PaperMenuInventoryFactory;
 
 import java.util.Map;
 import java.util.Objects;
@@ -13,6 +16,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ManagedService(
+        value = MenuService.class,
+        priority = 60,
+        registerAnnotatedTicks = false
+)
+@DependsOn(SchedulerService.class)
+@MainThread
 public final class MenuService implements Stoppable {
 
     private final JavaPlugin hostPlugin;
@@ -22,10 +32,6 @@ public final class MenuService implements Stoppable {
     private final Map<UUID, Menu> openMenus = new ConcurrentHashMap<>();
 
     private boolean stopped;
-
-    public MenuService(JavaPlugin hostPlugin, SchedulerService scheduler) {
-        this(hostPlugin, scheduler, new PaperMenuInventoryFactory());
-    }
 
     public MenuService(
             JavaPlugin hostPlugin,

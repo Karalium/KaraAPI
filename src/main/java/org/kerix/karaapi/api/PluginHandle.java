@@ -1,8 +1,12 @@
 package org.kerix.karaapi.api;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.DefaultXBoundary;
+import org.kerix.karaapi.api.annotation.SinceApi;
 import org.kerix.karaapi.api.bootstrap.BootstrapContext;
 import org.kerix.karaapi.api.config.ConfigService;
+import org.kerix.karaapi.api.effect.EffectService;
 import org.kerix.karaapi.api.event.EventBus;
 import org.kerix.karaapi.api.item.custom.CustomItemService;
 import org.kerix.karaapi.api.menu.MenuService;
@@ -137,6 +141,10 @@ public final class PluginHandle {
 
     public RecipeService recipes() {
         return context.recipes();
+    }
+
+    public EffectService effects() {
+        return context.effects();
     }
 
     public boolean isShutdown() {

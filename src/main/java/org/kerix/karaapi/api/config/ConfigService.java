@@ -1,10 +1,18 @@
 package org.kerix.karaapi.api.config;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 
 import java.util.*;
 
+@ManagedService(
+        value = ManagedService.class,
+        priority = 10,
+        registerAnnotatedTicks = false
+)
+@MainThread
 public final class ConfigService implements Stoppable {
 
     private final JavaPlugin hostPlugin;

@@ -1,6 +1,10 @@
 package org.kerix.karaapi.runtime;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NonNull;
+import org.kerix.karaapi.api.annotation.InternalApi;
+import org.kerix.karaapi.api.annotation.MainThread;
 import org.kerix.karaapi.api.bootstrap.BootstrapContext;
 import org.kerix.karaapi.api.config.ConfigService;
 import org.kerix.karaapi.api.effect.EffectService;
@@ -24,144 +28,293 @@ import org.kerix.karaapi.api.storage.StorageService;
 import org.kerix.karaapi.api.task.TaskService;
 import org.kerix.karaapi.api.tick.TickOrchestrator;
 import org.kerix.karaapi.api.ui.UiService;
+import org.kerix.karaapi.internal.annotation.AnnotatedLifecycle;
+import org.kerix.karaapi.internal.annotation.PluginRequirementResolver;
+import org.kerix.karaapi.internal.annotation.ThreadAccess;
+import org.kerix.karaapi.paper.command.PaperCommandRegistrar;
 import org.kerix.karaapi.paper.inventory.PaperMenuListener;
 import org.kerix.karaapi.paper.item.PaperCustomItemListener;
+import org.kerix.karaapi.paper.listener.PaperListenerRegistrar;
 import org.kerix.karaapi.paper.region.PaperRegionListener;
 
+import java.util.List;
 import java.util.Objects;
 
+@InternalApi(reason = "Runtime service composition root")
 final class CoreServiceInstaller {
+
+    private static final List<Installer> INSTALLERS = List.of(
+            new FoundationInstaller(),
+            new CommunicationInstaller(),
+            new GameplayInstaller(),
+            new StartupInstaller(),
+            new ServiceBindingInstaller()
+    );
 
     private CoreServiceInstaller() {
     }
 
-    static CoreServices install(JavaPlugin apiPlugin, JavaPlugin hostPlugin) {
-        Objects.requireNonNull(apiPlugin, "apiPlugin");
-        Objects.requireNonNull(hostPlugin, "hostPlugin");
+    @MainThread
+    static @NonNull CoreServices install(JavaPlugin apiPlugin, JavaPlugin hostPlugin) {
+        RuntimeSetup setup = new RuntimeSetup(apiPlugin, hostPlugin);
 
-        ServiceContainer services = new ServiceContainer(hostPlugin.getLogger());
+        for (Installer installer : INSTALLERS) {
+            installer.install(setup);
+        }
 
-        CoreAdapters adapters = PaperAdapterInstaller.install(hostPlugin);
-
-        SchedulerService scheduler = adapters.scheduler();
-
-        TickOrchestrator ticks = new TickOrchestrator(hostPlugin, scheduler);
-        ConfigService configs = new ConfigService(hostPlugin);
-        TaskService tasks = new TaskService(hostPlugin, scheduler);
-        UiService ui = new UiService(hostPlugin, adapters.sidebars());
-        MenuService menus = new MenuService(hostPlugin, scheduler, adapters.menuInventories());
-
-        PlaceholderService placeholders = new PlaceholderService(
-                hostPlugin,
-                adapters.placeholderProviders(),
-                adapters.placeholderExpansions()
-        );
-
-        MessageService messages = new MessageService(hostPlugin, configs, placeholders);
-
-        RegistryService registries = new RegistryService();
-        StorageService storage = new StorageService(hostPlugin);
-        StartupProfile profile = StartupProfile.from(hostPlugin);
-        StartupAnnouncer announcer = new StartupAnnouncer(hostPlugin.getLogger(), profile);
-
-        CommandRegistrar commands = new CommandRegistrar(hostPlugin);
-        ListenerRegistrar listeners = new ListenerRegistrar(hostPlugin);
-
-        ProfileService profiles = new ProfileService();
-        CustomItemService customItems = new CustomItemService(hostPlugin);
-        RequirementService requirements = new RequirementService();
-
-        EventBus events = new EventBus(hostPlugin.getLogger());
-        RegionService regions = new RegionService(events);
-
-        RecipeService recipes = new RecipeService(hostPlugin, adapters.recipes());
-        EffectService effects = new EffectService(scheduler, adapters.effects());
-
-        listeners.register(new PaperMenuListener(menus));
-        listeners.register(new PaperCustomItemListener(customItems));
-        listeners.register(new PaperRegionListener(regions));
-
-        BootstrapContext context = new BootstrapContext(
-                apiPlugin,
-                hostPlugin,
-                services,
-                ticks,
-                commands,
-                listeners,
-                announcer,
-                configs,
-                tasks,
-                ui,
-                menus,
-                placeholders,
-                messages,
-                registries,
-                storage,
-                profiles,
-                customItems,
-                requirements,
-                regions,
-                events,
-                scheduler,
-                recipes,
-                effects
-        );
-
-
-        CoreServices core = new CoreServices(
-                services,
-                scheduler,
-                ticks,
-                configs,
-                tasks,
-                ui,
-                menus,
-                placeholders,
-                messages,
-                registries,
-                storage,
-                profile,
-                announcer,
-                commands,
-                listeners,
-                profiles,
-                customItems,
-                requirements,
-                regions,
-                events,
-                effects,
-                recipes,
-                context
-        );
-
-        bindCoreServices(core);
-
-        return core;
+        return setup.toCoreServices();
     }
 
-    private static void bindCoreServices(CoreServices core) {
-        ServiceContainer services = core.services();
+    private interface Installer {
 
-        services.bind(ServiceContainer.class, services);
-        services.bind(SchedulerService.class, core.scheduler());
-        services.bind(TickOrchestrator.class, core.ticks());
-        services.bind(ConfigService.class, core.configs());
-        services.bind(TaskService.class, core.tasks());
-        services.bind(UiService.class, core.ui());
-        services.bind(MenuService.class, core.menus());
-        services.bind(PlaceholderService.class, core.placeholders());
-        services.bind(MessageService.class, core.messages());
-        services.bind(RegistryService.class, core.registries());
-        services.bind(StorageService.class, core.storage());
-        services.bind(ProfileService.class, core.profiles());
-        services.bind(CustomItemService.class, core.customItems());
-        services.bind(RequirementService.class, core.requirements());
-        services.bind(RegionService.class, core.regions());
-        services.bind(EventBus.class, core.events());
-        services.bind(RecipeService.class, core.recipes());
-        services.bind(StartupProfile.class, core.profile());
-        services.bind(StartupAnnouncer.class, core.announcer());
-        services.bind(CommandRegistrar.class, core.commands());
-        services.bind(ListenerRegistrar.class, core.listeners());
+        void install(RuntimeSetup setup);
+    }
+
+    private static final class RuntimeSetup {
+
+        private final JavaPlugin apiPlugin;
+        private final JavaPlugin hostPlugin;
+        private final ServiceContainer services;
+        private final CoreAdapters adapters;
+
+        private SchedulerService scheduler;
+        private TickOrchestrator ticks;
+
+        private ConfigService configs;
+        private TaskService tasks;
+
+        private PlaceholderService placeholders;
+        private MessageService messages;
+        private UiService ui;
+        private MenuService menus;
+
+        private RegistryService registries;
+        private StorageService storage;
+        private RequirementService requirements;
+        private EventBus events;
+
+        private StartupProfile profile;
+        private StartupAnnouncer announcer;
+        private CommandRegistrar commands;
+        private ListenerRegistrar listeners;
+
+        private ProfileService profiles;
+        private CustomItemService customItems;
+        private RegionService regions;
+
+        private RecipeService recipes;
+        private EffectService effects;
+
+        private RuntimeSetup(JavaPlugin apiPlugin, JavaPlugin hostPlugin) {
+            this.apiPlugin = Objects.requireNonNull(apiPlugin, "apiPlugin");
+            this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
+
+            this.services = new ServiceContainer(
+                    hostPlugin.getLogger(),
+                    new AnnotatedLifecycle(
+                            pluginName -> hostPlugin.getServer()
+                                    .getPluginManager()
+                                    .isPluginEnabled(pluginName),
+                            () -> hostPlugin.getServer().isPrimaryThread()
+                    )
+            );
+            this.adapters = PaperAdapterInstaller.install(hostPlugin);
+        }
+
+        private @NonNull CoreServices toCoreServices() {
+            BootstrapContext context = new BootstrapContext(
+                    require(apiPlugin, "apiPlugin"),
+                    require(hostPlugin, "hostPlugin"),
+                    require(services, "services"),
+                    require(ticks, "ticks"),
+                    require(commands, "commands"),
+                    require(listeners, "listeners"),
+                    require(announcer, "announcer"),
+                    require(configs, "configs"),
+                    require(tasks, "tasks"),
+                    require(ui, "ui"),
+                    require(menus, "menus"),
+                    require(placeholders, "placeholders"),
+                    require(messages, "messages"),
+                    require(registries, "registries"),
+                    require(storage, "storage"),
+                    require(profiles, "profiles"),
+                    require(customItems, "customItems"),
+                    require(requirements, "requirements"),
+                    require(regions, "regions"),
+                    require(events, "events"),
+                    require(scheduler, "scheduler"),
+                    require(recipes, "recipes"),
+                    require(effects, "effects")
+            );
+
+            return new CoreServices(
+                    require(services, "services"),
+                    require(scheduler, "scheduler"),
+                    require(ticks, "ticks"),
+                    require(configs, "configs"),
+                    require(tasks, "tasks"),
+                    require(ui, "ui"),
+                    require(menus, "menus"),
+                    require(placeholders, "placeholders"),
+                    require(messages, "messages"),
+                    require(registries, "registries"),
+                    require(storage, "storage"),
+                    require(profile, "profile"),
+                    require(announcer, "announcer"),
+                    require(commands, "commands"),
+                    require(listeners, "listeners"),
+                    require(profiles, "profiles"),
+                    require(customItems, "customItems"),
+                    require(requirements, "requirements"),
+                    require(regions, "regions"),
+                    require(events, "events"),
+                    require(effects, "effects"),
+                    require(recipes, "recipes"),
+                    context
+            );
+        }
+
+        @Contract(value = "null, _ -> fail; !null, _ -> param1", pure = true)
+        private static <T> @NonNull T require(T value, String name) {
+            if (value == null) {
+                throw new IllegalStateException("Runtime service was not installed: " + name);
+            }
+
+            return value;
+        }
+    }
+
+    private static final class FoundationInstaller implements Installer {
+
+        @Override
+        public void install(@NonNull RuntimeSetup setup) {
+            setup.scheduler = setup.adapters.scheduler();
+            setup.ticks = new TickOrchestrator(setup.hostPlugin, setup.scheduler);
+
+            setup.configs = new ConfigService(setup.hostPlugin);
+            setup.tasks = new TaskService(setup.hostPlugin, setup.scheduler);
+
+            setup.registries = new RegistryService();
+            setup.storage = new StorageService(setup.hostPlugin);
+            setup.requirements = new RequirementService();
+            setup.events = new EventBus(setup.hostPlugin.getLogger());
+        }
+    }
+
+    private static final class CommunicationInstaller implements Installer {
+
+        @Override
+        public void install(@NonNull RuntimeSetup setup) {
+            setup.placeholders = new PlaceholderService(
+                    setup.hostPlugin,
+                    setup.adapters.placeholderProviders(),
+                    setup.adapters.placeholderExpansions()
+            );
+
+            setup.messages = new MessageService(
+                    setup.hostPlugin,
+                    setup.configs,
+                    setup.placeholders
+            );
+
+            setup.ui = new UiService(
+                    setup.hostPlugin,
+                    setup.adapters.sidebars(),
+                    setup.messages
+            );
+        }
+    }
+
+    private static final class GameplayInstaller implements Installer {
+
+        @Override
+        public void install(@NonNull RuntimeSetup setup) {
+            setup.menus = new MenuService(
+                    setup.hostPlugin,
+                    setup.scheduler,
+                    setup.adapters.menuInventories()
+            );
+
+            setup.profiles = new ProfileService();
+            setup.customItems = new CustomItemService(setup.hostPlugin);
+            setup.regions = new RegionService(setup.events);
+
+            setup.recipes = new RecipeService(
+                    setup.hostPlugin,
+                    setup.adapters.recipes()
+            );
+
+            setup.effects = new EffectService(
+                    setup.scheduler,
+                    setup.adapters.effects()
+            );
+        }
+    }
+
+    private static final class StartupInstaller implements Installer {
+
+        @Override
+        public void install(@NonNull RuntimeSetup setup) {
+            setup.profile = StartupProfile.from(setup.hostPlugin);
+
+            setup.announcer = new StartupAnnouncer(
+                    setup.hostPlugin.getLogger(),
+                    setup.profile
+            );
+
+            setup.commands = new CommandRegistrar(
+                    new PaperCommandRegistrar(setup.hostPlugin)
+            );
+
+            setup.listeners = new ListenerRegistrar(
+                    new PaperListenerRegistrar(setup.hostPlugin)
+            );
+
+            registerDefaultListeners(setup);
+        }
+
+        private void registerDefaultListeners(@NonNull RuntimeSetup setup) {
+            setup.listeners.register(new PaperMenuListener(setup.menus));
+            setup.listeners.register(new PaperCustomItemListener(setup.customItems));
+            setup.listeners.register(new PaperRegionListener(setup.regions));
+        }
+    }
+
+    private static final class ServiceBindingInstaller implements Installer {
+
+        @Override
+        public void install(@NonNull RuntimeSetup setup) {
+            ServiceContainer services = setup.services;
+
+            services.bind(ServiceContainer.class, setup.services);
+            services.bind(SchedulerService.class, setup.scheduler);
+            services.bind(TickOrchestrator.class, setup.ticks);
+
+            services.bind(ConfigService.class, setup.configs);
+            services.bind(TaskService.class, setup.tasks);
+
+            services.bind(PlaceholderService.class, setup.placeholders);
+            services.bind(MessageService.class, setup.messages);
+            services.bind(UiService.class, setup.ui);
+            services.bind(MenuService.class, setup.menus);
+
+            services.bind(RegistryService.class, setup.registries);
+            services.bind(StorageService.class, setup.storage);
+            services.bind(RequirementService.class, setup.requirements);
+            services.bind(EventBus.class, setup.events);
+
+            services.bind(ProfileService.class, setup.profiles);
+            services.bind(CustomItemService.class, setup.customItems);
+            services.bind(RegionService.class, setup.regions);
+
+            services.bind(RecipeService.class, setup.recipes);
+            services.bind(EffectService.class, setup.effects);
+
+            services.bind(StartupProfile.class, setup.profile);
+            services.bind(StartupAnnouncer.class, setup.announcer);
+            services.bind(CommandRegistrar.class, setup.commands);
+            services.bind(ListenerRegistrar.class, setup.listeners);
+        }
     }
 }

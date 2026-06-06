@@ -21,9 +21,15 @@ public final class ServiceContainer {
     private final LinkedHashMap<Class<?>, Object> services = new LinkedHashMap<>();
 
     private boolean started;
+    private final ServiceLifecycleProcessor annotations;
 
-    public ServiceContainer(Logger log) {
+
+    public ServiceContainer(
+            Logger log ,
+            ServiceLifecycleProcessor annotations
+    ) {
         this.log = Objects.requireNonNull(log, "log");
+        this.annotations = annotations;
     }
 
     public <T> T bind(Class<T> key, T implementation) {
@@ -102,15 +108,13 @@ public final class ServiceContainer {
         }
 
         for (Object service : services.values()) {
-            if (!(service instanceof Startable startable)) {
-                continue;
-            }
-
             try {
-                startable.start();
+                if (service instanceof Startable startable) {
+                    startable.start();
+                    log.fine("[ServiceContainer] Started " + service.getClass().getSimpleName());
+                }
 
-                log.fine("[ServiceContainer] Started "
-                        + service.getClass().getSimpleName());
+                annotations.start(service);
             } catch (Throwable throwable) {
                 throw new IllegalStateException(
                         "[ServiceContainer] Failed to start "
@@ -127,17 +131,20 @@ public final class ServiceContainer {
         Objects.requireNonNull(tickOrchestrator, "tickOrchestrator");
 
         for (Object service : services.values()) {
-            if (!(service instanceof Tickable tickable)) {
-                continue;
+            if (service instanceof Tickable tickable) {
+                tickOrchestrator.register(tickable);
+                log.fine("[ServiceContainer] Registered tickable "
+                        + service.getClass().getSimpleName()
+                        + " every "
+                        + tickable.tickInterval()
+                        + " ticks");
             }
 
-            tickOrchestrator.register(tickable);
-
-            log.fine("[ServiceContainer] Registered tickable "
-                    + service.getClass().getSimpleName()
-                    + " every "
-                    + tickable.tickInterval()
-                    + " ticks");
+            for (Tickable annotatedTickable : annotations.tickables(service)) {
+                tickOrchestrator.register(annotatedTickable);
+                log.fine("[ServiceContainer] Registered annotated tickable "
+                        + annotatedTickable);
+            }
         }
     }
 
@@ -146,15 +153,13 @@ public final class ServiceContainer {
         Collections.reverse(reversed);
 
         for (Object service : reversed) {
-            if (!(service instanceof Stoppable stoppable)) {
-                continue;
-            }
-
             try {
-                stoppable.stop();
+                annotations.stop(service);
 
-                log.fine("[ServiceContainer] Stopped "
-                        + service.getClass().getSimpleName());
+                if (service instanceof Stoppable stoppable) {
+                    stoppable.stop();
+                    log.fine("[ServiceContainer] Stopped " + service.getClass().getSimpleName());
+                }
             } catch (Throwable throwable) {
                 log.log(
                         Level.SEVERE,

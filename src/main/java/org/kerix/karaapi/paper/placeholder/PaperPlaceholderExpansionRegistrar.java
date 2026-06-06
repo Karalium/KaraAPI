@@ -1,6 +1,7 @@
 package org.kerix.karaapi.paper.placeholder;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.RequiresPlugin;
 import org.kerix.karaapi.api.placeholder.PlaceholderException;
 import org.kerix.karaapi.api.placeholder.PlaceholderExpansion;
 import org.kerix.karaapi.api.placeholder.PlaceholderExpansionRegistrar;
@@ -11,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+@RequiresPlugin(value = "PlaceholderAPI",required = false)
 public final class PaperPlaceholderExpansionRegistrar
         implements PlaceholderExpansionRegistrar {
 

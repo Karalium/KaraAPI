@@ -1,29 +1,44 @@
 package org.kerix.karaapi.api.startup;
 
-import org.bukkit.command.PluginCommand;
-
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public final class CommandRegistration implements AutoCloseable {
+public final class CommandRegistration implements Registration {
 
-    private final PluginCommand command;
+    private final String name;
+    private final List<String> aliases;
     private final Runnable unregisterAction;
     private final AtomicBoolean active = new AtomicBoolean(true);
 
-    public CommandRegistration(PluginCommand command, Runnable unregisterAction) {
-        this.command = Objects.requireNonNull(command, "command");
+    public CommandRegistration(String name, Runnable unregisterAction) {
+        this(name, List.of(), unregisterAction);
+    }
+
+    public CommandRegistration(
+            String name,
+            List<String> aliases,
+            Runnable unregisterAction
+    ) {
+        this.name = Objects.requireNonNull(name, "name");
+        this.aliases = List.copyOf(Objects.requireNonNull(aliases, "aliases"));
         this.unregisterAction = Objects.requireNonNull(unregisterAction, "unregisterAction");
     }
 
-    public PluginCommand command() {
-        return command;
+    public String name() {
+        return name;
     }
 
+    public List<String> aliases() {
+        return aliases;
+    }
+
+    @Override
     public boolean active() {
         return active.get();
     }
 
+    @Override
     public void unregister() {
         if (active.compareAndSet(true, false)) {
             unregisterAction.run();
@@ -31,7 +46,7 @@ public final class CommandRegistration implements AutoCloseable {
     }
 
     @Override
-    public void close() {
-        unregister();
+    public String toString() {
+        return "CommandRegistration{name='" + name + "', active=" + active() + '}';
     }
 }

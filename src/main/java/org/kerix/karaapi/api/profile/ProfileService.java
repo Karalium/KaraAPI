@@ -1,5 +1,7 @@
 package org.kerix.karaapi.api.profile;
 
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.storage.Repository;
 
@@ -10,6 +12,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+@ManagedService(
+        value = ProfileService.class,
+        priority = 50,
+        registerAnnotatedTicks = false
+)
 public final class ProfileService implements Stoppable {
 
     private final Map<String, ProfileCache<?>> caches = new LinkedHashMap<>();

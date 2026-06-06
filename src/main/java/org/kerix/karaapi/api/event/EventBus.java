@@ -1,5 +1,6 @@
 package org.kerix.karaapi.api.event;
 
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 
 import java.util.ArrayList;
@@ -14,6 +15,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@ManagedService(
+        value = EventBus.class,
+        priority = 20,
+        registerAnnotatedTicks = false
+)
 public final class EventBus implements Stoppable {
 
     private final Map<Class<?>, CopyOnWriteArrayList<EventSubscription<?>>> subscriptions =

@@ -1,43 +1,49 @@
 package org.kerix.karaapi.api.startup;
 
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
-import org.kerix.karaapi.paper.listener.PaperListenerRegistrar;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ManagedService(
+        value = ListenerRegistrar.class,
+        priority = 95,
+        registerAnnotatedTicks = false
+)
+@MainThread
 public final class ListenerRegistrar implements Stoppable {
 
-    private final PaperListenerRegistrar paper;
+    private final ListenerGateway gateway;
     private final Set<ListenerRegistration> registrations = ConcurrentHashMap.newKeySet();
 
     private volatile boolean stopped;
 
-    public ListenerRegistrar(JavaPlugin hostPlugin) {
-        this.paper = new PaperListenerRegistrar(
-                Objects.requireNonNull(hostPlugin, "hostPlugin")
-        );
+    public ListenerRegistrar(ListenerGateway gateway) {
+        this.gateway = Objects.requireNonNull(gateway, "gateway");
     }
 
     public ListenerRegistration register(Listener listener) {
-        Objects.requireNonNull(listener, "listener");
         ensureRunning();
 
-        ListenerRegistration registration = paper.register(listener);
-        registrations.add(registration);
+        ListenerRegistration registration = gateway.register(
+                Objects.requireNonNull(listener, "listener")
+        );
 
+        registrations.add(registration);
         return registration;
     }
 
     public List<ListenerRegistration> registerAll(Listener... listeners) {
-        Objects.requireNonNull(listeners, "listeners");
         ensureRunning();
+        Objects.requireNonNull(listeners, "listeners");
 
-        List<ListenerRegistration> created = paper.registerAll(listeners);
+        List<ListenerRegistration> created = gateway.registerAll(listeners);
         registrations.addAll(created);
 
         return created;

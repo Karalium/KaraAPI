@@ -2,6 +2,10 @@ package org.kerix.karaapi.api.region;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.DependsOn;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.event.EventBus;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.registry.MutableRegistry;
@@ -17,6 +21,13 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
+@ManagedService(
+        value = RegionService.class,
+        priority = 65,
+        registerAnnotatedTicks = false
+)
+@DependsOn(EventBus.class)
+@MainThread
 public final class RegionService implements Stoppable {
 
     private final MutableRegistry<Region> regions = MutableRegistry.create("regions");

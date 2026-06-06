@@ -9,6 +9,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.kerix.karaapi.api.annotation.MainThread;
 import org.kerix.karaapi.api.item.custom.CustomItemAttack;
 import org.kerix.karaapi.api.item.custom.CustomItemInteract;
 import org.kerix.karaapi.api.item.custom.CustomItemInventoryClick;
@@ -16,6 +17,8 @@ import org.kerix.karaapi.api.item.custom.CustomItemService;
 
 import java.util.Objects;
 
+
+@MainThread
 public final class PaperCustomItemListener implements Listener {
 
     private final CustomItemService service;

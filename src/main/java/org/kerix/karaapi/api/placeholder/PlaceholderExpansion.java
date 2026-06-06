@@ -91,9 +91,7 @@ public final class PlaceholderExpansion {
 
         String normalized = identifier
                 .trim()
-                .toLowerCase(Locale.ROOT)
-                .replace(' ', '_')
-                .replace('-', '_');
+                .toLowerCase(Locale.ROOT);
 
         if (normalized.isBlank()) {
             throw new IllegalArgumentException("Placeholder expansion identifier cannot be blank.");
@@ -102,9 +100,10 @@ public final class PlaceholderExpansion {
         if (normalized.contains("%")
                 || normalized.contains("{")
                 || normalized.contains("}")
-                || normalized.contains("_")) {
+                || normalized.contains("_")
+                || normalized.contains(" ")) {
             throw new IllegalArgumentException(
-                    "Placeholder expansion identifier may not contain %, {, }, or _: " + identifier
+                    "Placeholder expansion identifier may not contain %, {, }, _, or spaces: " + identifier
             );
         }
 

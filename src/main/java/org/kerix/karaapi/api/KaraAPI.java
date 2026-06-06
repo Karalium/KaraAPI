@@ -1,6 +1,12 @@
 package org.kerix.karaapi.api;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NonNull;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.DefaultXBoundary;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.SinceApi;
 import org.kerix.karaapi.api.bootstrap.PluginModule;
 import org.kerix.karaapi.runtime.KaraRuntime;
 
@@ -23,10 +29,13 @@ public final class KaraAPI {
         runtime = new KaraRuntime(apiPlugin);
     }
 
-    public static PluginHandle boot(JavaPlugin hostPlugin, PluginModule... modules) {
+    @Contract("_, _ -> new")
+    @MainThread
+    public static @NonNull PluginHandle boot(JavaPlugin hostPlugin, PluginModule... modules) {
         return runtime().boot(hostPlugin, modules);
     }
 
+    @MainThread
     public static void shutdown(JavaPlugin hostPlugin) {
         KaraRuntime current = runtime;
 
@@ -37,6 +46,7 @@ public final class KaraAPI {
         current.shutdown(hostPlugin);
     }
 
+    @MainThread
     public static synchronized void shutdownAll() {
         if (runtime == null) {
             return;
@@ -53,7 +63,8 @@ public final class KaraAPI {
         return runtime != null;
     }
 
-    private static KaraRuntime runtime() {
+    @Contract(pure = true)
+    private static @NonNull KaraRuntime runtime() {
         KaraRuntime current = runtime;
 
         if (current == null) {

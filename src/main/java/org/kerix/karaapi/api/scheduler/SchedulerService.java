@@ -2,12 +2,20 @@ package org.kerix.karaapi.api.scheduler;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+@ManagedService(
+        value = SchedulerService.class,
+        registerAnnotatedTicks = false
+)
+@MainThread
 public final class SchedulerService implements SchedulerExecutor, Stoppable {
 
     private final SchedulerExecutor executor;

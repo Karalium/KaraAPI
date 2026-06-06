@@ -2,6 +2,8 @@ package org.kerix.karaapi.api.placeholder;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.ManagedService;
+import org.kerix.karaapi.api.annotation.RequiresPlugin;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 
 import java.util.ArrayList;
@@ -11,6 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@ManagedService(
+        value = PlaceholderService.class,
+        priority = 35,
+        registerAnnotatedTicks = false
+)
+@RequiresPlugin(value = "PlaceholderAPI",required = false)
 public final class PlaceholderService implements Stoppable {
 
     private final JavaPlugin hostPlugin;

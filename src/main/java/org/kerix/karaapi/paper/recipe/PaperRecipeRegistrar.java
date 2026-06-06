@@ -5,11 +5,14 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.MainThread;
 import org.kerix.karaapi.api.recipe.RecipeRegistrar;
 
 import java.util.Collection;
 import java.util.Objects;
 
+
+@MainThread
 public record PaperRecipeRegistrar(JavaPlugin plugin) implements RecipeRegistrar {
 
     public PaperRecipeRegistrar(JavaPlugin plugin) {

@@ -4,12 +4,15 @@ import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.entity.Player;
+import org.kerix.karaapi.api.annotation.MainThread;
 import org.kerix.karaapi.api.effect.EffectEmitter;
 import org.kerix.karaapi.api.effect.particle.ParticleStyle;
 
 import java.util.Collection;
 import java.util.Objects;
 
+
+@MainThread
 public final class PaperEffectEmitter implements EffectEmitter {
 
     @Override

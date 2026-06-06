@@ -2,6 +2,10 @@ package org.kerix.karaapi.api.effect;
 
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.DependsOn;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.effect.geometry.Motif;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.scheduler.ScheduledTaskHandle;
@@ -16,6 +20,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+@ManagedService(
+        value = EffectService.class,
+        priority = 80,
+        registerAnnotatedTicks = false
+)
+@DependsOn(SchedulerService.class)
+@MainThread
 public final class EffectService implements Stoppable {
 
     private final SchedulerService scheduler;

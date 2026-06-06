@@ -1,6 +1,7 @@
 package org.kerix.karaapi.runtime;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.InternalApi;
 import org.kerix.karaapi.api.bootstrap.BootstrapContext;
 import org.kerix.karaapi.api.bootstrap.PluginModule;
 import org.kerix.karaapi.api.config.ConfigService;
@@ -17,6 +18,7 @@ import org.kerix.karaapi.api.ui.UiService;
 import java.util.Objects;
 import java.util.logging.Level;
 
+@InternalApi(reason = "Per plugin runtime kernel managed by KaraRuntime.")
 public final class PluginKernel {
 
     private final JavaPlugin apiPlugin;

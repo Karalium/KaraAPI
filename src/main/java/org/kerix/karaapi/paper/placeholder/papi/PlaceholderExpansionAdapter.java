@@ -3,11 +3,13 @@ package org.kerix.karaapi.paper.placeholder.papi;
 import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.kerix.karaapi.api.annotation.RequiresPlugin;
 import org.kerix.karaapi.api.placeholder.PlaceholderExpansion;
 
 import java.util.List;
 import java.util.Objects;
 
+@RequiresPlugin(value = "PlaceholderAPI",required = false)
 public final class PlaceholderExpansionAdapter
         extends me.clip.placeholderapi.expansion.PlaceholderExpansion {
 

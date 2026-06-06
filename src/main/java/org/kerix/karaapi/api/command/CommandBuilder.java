@@ -8,11 +8,6 @@ import java.util.Objects;
 import org.kerix.karaapi.api.command.argument.ArgumentSchema;
 import org.kerix.karaapi.api.command.argument.ArgumentType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-
 public final class CommandBuilder {
 
     private final String name;

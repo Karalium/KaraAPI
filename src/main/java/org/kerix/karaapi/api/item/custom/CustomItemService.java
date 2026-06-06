@@ -6,6 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.item.ItemKeys;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.logic.Cooldowns;
@@ -19,6 +21,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+@ManagedService(
+        value = CustomItemService.class,
+        priority = 70,
+        registerAnnotatedTicks = false
+)
+@MainThread
 public final class CustomItemService implements Stoppable {
 
     private final JavaPlugin hostPlugin;

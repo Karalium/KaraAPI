@@ -2,6 +2,7 @@ package org.kerix.karaapi.runtime;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.PluginHandle;
+import org.kerix.karaapi.api.annotation.InternalApi;
 import org.kerix.karaapi.api.bootstrap.PluginModule;
 
 import java.util.IdentityHashMap;
@@ -11,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 
+@InternalApi(reason = "Runtime bootstrap engine; use KaraAPI.boot() instead")
 public final class KaraRuntime {
 
     private final JavaPlugin apiPlugin;

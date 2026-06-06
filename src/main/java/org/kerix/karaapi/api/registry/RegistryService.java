@@ -1,5 +1,6 @@
 package org.kerix.karaapi.api.registry;
 
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 
 import java.util.LinkedHashMap;
@@ -9,6 +10,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+@ManagedService(
+        value = RegistryService.class,
+        priority = 15,
+        registerAnnotatedTicks = false
+)
 public final class RegistryService implements Stoppable {
 
     private final Map<String, MutableRegistry<?>> registries = new LinkedHashMap<>();

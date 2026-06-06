@@ -6,13 +6,17 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.MainThread;
 import org.kerix.karaapi.api.command.CommandNode;
+import org.kerix.karaapi.api.startup.CommandGateway;
 import org.kerix.karaapi.api.startup.CommandRegistration;
 
 import java.util.List;
 import java.util.Objects;
 
-public record PaperCommandRegistrar(JavaPlugin hostPlugin) {
+
+@MainThread
+public record PaperCommandRegistrar(JavaPlugin hostPlugin) implements CommandGateway {
 
     public PaperCommandRegistrar(JavaPlugin hostPlugin) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
@@ -71,7 +75,7 @@ public record PaperCommandRegistrar(JavaPlugin hostPlugin) {
     }
 
     private CommandRegistration registration(PluginCommand command) {
-        return new CommandRegistration(command, () -> {
+        return new CommandRegistration(command.getName(), command.getAliases(), () -> {
             command.setExecutor((sender, ignoredCommand, label, args) -> {
                 sender.sendMessage(Component.text(
                         "This command is no longer available.",

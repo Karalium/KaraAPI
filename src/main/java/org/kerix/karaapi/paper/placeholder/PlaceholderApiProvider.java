@@ -3,12 +3,14 @@ package org.kerix.karaapi.paper.placeholder;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.RequiresPlugin;
 import org.kerix.karaapi.api.placeholder.PlaceholderContext;
 import org.kerix.karaapi.api.placeholder.PlaceholderProvider;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
 
+@RequiresPlugin(value = "PlaceholderAPI",required = false)
 public final class PlaceholderApiProvider implements PlaceholderProvider {
 
     private static final String PLUGIN_NAME = "PlaceholderAPI";
