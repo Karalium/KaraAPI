@@ -29,8 +29,6 @@ import org.kerix.karaapi.api.task.TaskService;
 import org.kerix.karaapi.api.tick.TickOrchestrator;
 import org.kerix.karaapi.api.ui.UiService;
 import org.kerix.karaapi.internal.annotation.AnnotatedLifecycle;
-import org.kerix.karaapi.internal.annotation.PluginRequirementResolver;
-import org.kerix.karaapi.internal.annotation.ThreadAccess;
 import org.kerix.karaapi.paper.command.PaperCommandRegistrar;
 import org.kerix.karaapi.paper.inventory.PaperMenuListener;
 import org.kerix.karaapi.paper.item.PaperCustomItemListener;

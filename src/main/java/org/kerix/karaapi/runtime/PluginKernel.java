@@ -18,8 +18,9 @@ import org.kerix.karaapi.api.ui.UiService;
 import java.util.Objects;
 import java.util.logging.Level;
 
+
 @InternalApi(reason = "Per plugin runtime kernel managed by KaraRuntime.")
-public final class PluginKernel {
+final class PluginKernel {
 
     private final JavaPlugin apiPlugin;
     private final JavaPlugin hostPlugin;

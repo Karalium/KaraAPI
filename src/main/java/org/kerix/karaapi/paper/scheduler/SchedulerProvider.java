@@ -13,6 +13,8 @@ public final class SchedulerProvider {
     public static SchedulerService create(JavaPlugin plugin) {
         Objects.requireNonNull(plugin, "plugin");
 
+        //TODO: Activate folia (some day)
+
         return new SchedulerService(new BukkitSchedulerExecutor(plugin));
     }
 }

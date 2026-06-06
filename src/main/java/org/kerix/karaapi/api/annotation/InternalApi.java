@@ -7,7 +7,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@ApiStatus.Internal
 @Retention(RetentionPolicy.CLASS)
 @Target({
         ElementType.TYPE,

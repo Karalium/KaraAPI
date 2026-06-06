@@ -12,7 +12,7 @@ import org.kerix.karaapi.paper.listener.PaperListenerRegistrar;
 
 import java.util.List;
 
-public record CoreAdapters(
+record CoreAdapters(
         SchedulerService scheduler,
         MenuInventoryFactory menuInventories,
         RecipeRegistrar recipes,

@@ -12,7 +12,7 @@ import org.kerix.karaapi.paper.scoreboard.PaperSidebarRendererFactory;
 
 import java.util.Objects;
 
-public final class PaperAdapterInstaller{
+final class PaperAdapterInstaller{
 
     private PaperAdapterInstaller() {
     }

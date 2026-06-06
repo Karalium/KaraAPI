@@ -24,7 +24,7 @@ import org.kerix.karaapi.api.task.TaskService;
 import org.kerix.karaapi.api.tick.TickOrchestrator;
 import org.kerix.karaapi.api.ui.UiService;
 
-public record CoreServices(
+record CoreServices(
         ServiceContainer services,
         SchedulerService scheduler,
         TickOrchestrator ticks,
