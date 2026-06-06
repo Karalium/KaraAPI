@@ -15,12 +15,23 @@ public final class ArgumentSchema {
     }
 
     public <T> ArgumentSchema required(String name, ArgumentType<T> type) {
+        ensureCanAddNormalArgument();
         arguments.add(CommandArgument.required(name, type));
         return this;
     }
 
     public <T> ArgumentSchema optional(String name, ArgumentType<T> type, T defaultValue) {
+        ensureCanAddNormalArgument();
         arguments.add(CommandArgument.optional(name, type, defaultValue));
+        return this;
+    }
+
+    public ArgumentSchema greedy(String name) {
+        if (!arguments.isEmpty() && arguments.get(arguments.size() - 1).greedy()) {
+            throw new IllegalStateException("Only one greedy argument is allowed.");
+        }
+
+        arguments.add(CommandArgument.greedy(name));
         return this;
     }
 
@@ -30,10 +41,10 @@ public final class ArgumentSchema {
         String[] raw = context.args();
         ParsedArguments parsed = new ParsedArguments();
 
-        for (int index = 0; index < arguments.size(); index++) {
-            CommandArgument<?> argument = arguments.get(index);
+        int rawIndex = 0;
 
-            if (index >= raw.length) {
+        for (CommandArgument<?> argument : arguments) {
+            if (rawIndex >= raw.length) {
                 if (argument.optional()) {
                     parsed.put(argument.name(), argument.defaultValue());
                     continue;
@@ -42,8 +53,22 @@ public final class ArgumentSchema {
                 throw new ArgumentParseException("Missing argument: " + argument.name());
             }
 
-            Object value = argument.type().parse(context, raw[index]);
+            String input;
+
+            if (argument.greedy()) {
+                input = String.join(" ", List.of(raw).subList(rawIndex, raw.length));
+                rawIndex = raw.length;
+            } else {
+                input = raw[rawIndex];
+                rawIndex++;
+            }
+
+            Object value = argument.type().parse(context, input);
             parsed.put(argument.name(), value);
+        }
+
+        if (rawIndex < raw.length) {
+            throw new ArgumentParseException("Too many arguments.");
         }
 
         return parsed;
@@ -55,5 +80,35 @@ public final class ArgumentSchema {
         }
 
         return arguments.get(argumentIndex).type().suggest(context, input);
+    }
+
+    public boolean empty() {
+        return arguments.isEmpty();
+    }
+
+    public int size() {
+        return arguments.size();
+    }
+
+    public List<CommandArgument<?>> arguments() {
+        return List.copyOf(arguments);
+    }
+
+    public String usage() {
+        return String.join(" ", arguments.stream()
+                .map(CommandArgument::usage)
+                .toList());
+    }
+
+    public ArgumentSchema copy() {
+        ArgumentSchema copy = new ArgumentSchema();
+        copy.arguments.addAll(arguments);
+        return copy;
+    }
+
+    private void ensureCanAddNormalArgument() {
+        if (!arguments.isEmpty() && arguments.get(arguments.size() - 1).greedy()) {
+            throw new IllegalStateException("Cannot add arguments after a greedy argument.");
+        }
     }
 }

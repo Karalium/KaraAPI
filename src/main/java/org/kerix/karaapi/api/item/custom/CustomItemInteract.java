@@ -14,7 +14,15 @@ public record CustomItemInteract(
         EquipmentSlot hand
 ) {
 
+    public boolean cancelled() {
+        return event.isCancelled();
+    }
+
     public void cancelled(boolean cancelled) {
         event.setCancelled(cancelled);
+    }
+
+    public void deny() {
+        cancelled(true);
     }
 }

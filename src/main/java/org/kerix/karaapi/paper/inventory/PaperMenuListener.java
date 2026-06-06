@@ -9,6 +9,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.kerix.karaapi.api.annotation.MainThread;
 import org.kerix.karaapi.api.menu.Menu;
 import org.kerix.karaapi.api.menu.MenuClick;
 import org.kerix.karaapi.api.menu.MenuClose;
@@ -16,7 +17,10 @@ import org.kerix.karaapi.api.menu.MenuOpen;
 import org.kerix.karaapi.api.menu.MenuService;
 
 import java.util.Objects;
+import java.util.Optional;
 
+
+@MainThread
 public final class PaperMenuListener implements Listener {
 
     private final MenuService menus;
@@ -38,6 +42,8 @@ public final class PaperMenuListener implements Listener {
         }
 
         Menu menu = holder.menu();
+
+        menus.trackOpen(player , menu);
 
         menu.handleOpen(new MenuOpen(
                 menus,
@@ -102,16 +108,25 @@ public final class PaperMenuListener implements Listener {
 
         Menu menu = holder.menu();
 
-        menu.handleClose(new MenuClose(
-                menus,
-                menu,
-                event,
-                player
-        ));
+        try {
+            menu.handleClose(new MenuClose(
+                    menus,
+                    menu,
+                    event,
+                    player
+            ));
+        } finally {
+            menus.trackClose(player);
+        }
     }
 
     public boolean isKaraMenu(Inventory inventory) {
         return holder(inventory) != null;
+    }
+
+    public Optional<Menu> menu(Inventory inventory) {
+        PaperMenuHolder holder = holder(inventory);
+        return holder == null ? Optional.empty() : Optional.of(holder.menu());
     }
 
     private PaperMenuHolder holder(Inventory inventory) {
@@ -122,6 +137,10 @@ public final class PaperMenuListener implements Listener {
         InventoryHolder holder = inventory.getHolder();
 
         if (!(holder instanceof PaperMenuHolder menuHolder)) {
+            return null;
+        }
+
+        if (menuHolder.menus() != menus) {
             return null;
         }
 

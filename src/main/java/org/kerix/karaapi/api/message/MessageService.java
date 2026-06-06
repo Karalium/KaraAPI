@@ -6,6 +6,9 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.DependsOn;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.config.ConfigService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.placeholder.PlaceholderService;
@@ -15,13 +18,21 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+@ManagedService(
+        value = MessageService.class,
+        priority = 40,
+        registerAnnotatedTicks = false
+)
+@DependsOn({
+        ConfigService.class,
+        PlaceholderService.class
+})
 public final class MessageService implements Stoppable {
 
     private final JavaPlugin hostPlugin;
     private final ConfigService configs;
     private final PlaceholderService placeholders;
     private final ComponentRenderer renderer;
-
     private final Map<String, MessageBundle> bundles = new LinkedHashMap<>();
 
     public MessageService(
@@ -66,6 +77,22 @@ public final class MessageService implements Stoppable {
         return renderer.component(player, raw, set);
     }
 
+    public Component component(MessageKey key) {
+        return main().component(key);
+    }
+
+    public Component component(OfflinePlayer player, MessageKey key, PlaceholderSet set) {
+        return main().component(player, key, set);
+    }
+
+    public Component gradient(String raw, String... colors) {
+        return renderer.gradient(raw, colors);
+    }
+
+    public Component gradient(OfflinePlayer player, String raw, String... colors) {
+        return renderer.gradient(player, raw, colors);
+    }
+
     public Component gradient(
             OfflinePlayer player,
             String raw,
@@ -75,53 +102,46 @@ public final class MessageService implements Stoppable {
         return renderer.gradient(player, raw, set, colors);
     }
 
-    public Component component(MessageKey key) {
-        return main().component(key);
-    }
-
-    public Component component(OfflinePlayer player, MessageKey key, PlaceholderSet set) {
-        return main().component(player, key, set);
-    }
-
-    public void send(Audience audience, MessageKey key) {
-        audience.sendMessage(component(key));
-    }
-
     public void send(Audience audience, String raw) {
-        OfflinePlayer player = audience instanceof Player bukkitPlayer
-                ? bukkitPlayer
-                : null;
-
-        audience.sendMessage(component(player, raw, PlaceholderSet.empty()));
+        send(audience, raw, PlaceholderSet.empty());
     }
 
     public void send(Audience audience, String raw, PlaceholderSet set) {
-        OfflinePlayer player = audience instanceof Player bukkitPlayer
-                ? bukkitPlayer
-                : null;
+        Objects.requireNonNull(audience, "audience");
 
+        OfflinePlayer player = audience instanceof Player bukkitPlayer ? bukkitPlayer : null;
         audience.sendMessage(component(player, raw, set));
     }
 
-    public void send(Audience audience, MessageKey key, PlaceholderSet set) {
-        OfflinePlayer player = audience instanceof Player bukkitPlayer
-                ? bukkitPlayer
-                : null;
+    public void send(Audience audience, MessageKey key) {
+        send(audience, key, PlaceholderSet.empty());
+    }
 
+    public void send(Audience audience, MessageKey key, PlaceholderSet set) {
+        Objects.requireNonNull(audience, "audience");
+
+        OfflinePlayer player = audience instanceof Player bukkitPlayer ? bukkitPlayer : null;
         audience.sendMessage(main().component(player, key, set));
     }
 
     public void send(CommandSender sender, MessageKey key) {
-        sender.sendMessage(component(key));
+        send(sender, key, PlaceholderSet.empty());
+    }
+
+    public void send(CommandSender sender, MessageKey key, PlaceholderSet set) {
+        Objects.requireNonNull(sender, "sender");
+        OfflinePlayer player = sender instanceof Player bukkitPlayer ? bukkitPlayer : null;
+        sender.sendMessage(main().component(player, key, set));
     }
 
     public void send(Player player, MessageKey key, PlaceholderSet set) {
+        Objects.requireNonNull(player, "player");
         player.sendMessage(main().component(player, key, set));
     }
 
     public void reloadAll() {
         for (MessageBundle bundle : bundles.values()) {
-            bundle.config().reload();
+            bundle.reload();
         }
     }
 

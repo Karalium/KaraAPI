@@ -2,11 +2,15 @@ package org.kerix.karaapi.api.command.argument;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.kerix.karaapi.api.command.CommandContext;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.function.Function;
 
 public final class Arguments {
 
@@ -58,7 +62,7 @@ public final class Arguments {
     public static ArgumentType<Player> player() {
         return new ArgumentType<>() {
             @Override
-            public Player parse(org.kerix.karaapi.api.command.CommandContext context, String input) {
+            public Player parse(CommandContext context, String input) {
                 Player player = Bukkit.getPlayerExact(input);
 
                 if (player == null) {
@@ -69,11 +73,29 @@ public final class Arguments {
             }
 
             @Override
-            public java.util.List<String> suggest(org.kerix.karaapi.api.command.CommandContext context, String input) {
+            public List<String> suggest(CommandContext context, String input) {
                 return Bukkit.getOnlinePlayers()
                         .stream()
                         .map(Player::getName)
-                        .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(input.toLowerCase(Locale.ROOT)))
+                        .filter(name -> startsWith(name, input))
+                        .toList();
+            }
+        };
+    }
+
+    public static ArgumentType<OfflinePlayer> offlinePlayer() {
+        return new ArgumentType<>() {
+            @Override
+            public OfflinePlayer parse(CommandContext context, String input) {
+                return Bukkit.getOfflinePlayer(input);
+            }
+
+            @Override
+            public List<String> suggest(CommandContext context, String input) {
+                return Bukkit.getOnlinePlayers()
+                        .stream()
+                        .map(Player::getName)
+                        .filter(name -> startsWith(name, input))
                         .toList();
             }
         };
@@ -82,7 +104,7 @@ public final class Arguments {
     public static ArgumentType<World> world() {
         return new ArgumentType<>() {
             @Override
-            public World parse(org.kerix.karaapi.api.command.CommandContext context, String input) {
+            public World parse(CommandContext context, String input) {
                 World world = Bukkit.getWorld(input);
 
                 if (world == null) {
@@ -93,11 +115,11 @@ public final class Arguments {
             }
 
             @Override
-            public java.util.List<String> suggest(org.kerix.karaapi.api.command.CommandContext context, String input) {
+            public List<String> suggest(CommandContext context, String input) {
                 return Bukkit.getWorlds()
                         .stream()
                         .map(World::getName)
-                        .filter(name -> name.toLowerCase(Locale.ROOT).startsWith(input.toLowerCase(Locale.ROOT)))
+                        .filter(name -> startsWith(name, input))
                         .toList();
             }
         };
@@ -106,7 +128,7 @@ public final class Arguments {
     public static ArgumentType<Material> material() {
         return new ArgumentType<>() {
             @Override
-            public Material parse(org.kerix.karaapi.api.command.CommandContext context, String input) {
+            public Material parse(CommandContext context, String input) {
                 Material material = Material.matchMaterial(input);
 
                 if (material == null) {
@@ -117,8 +139,8 @@ public final class Arguments {
             }
 
             @Override
-            public java.util.List<String> suggest(org.kerix.karaapi.api.command.CommandContext context, String input) {
-                String lower = input.toLowerCase(Locale.ROOT);
+            public List<String> suggest(CommandContext context, String input) {
+                String lower = lower(input);
 
                 return Arrays.stream(Material.values())
                         .filter(Material::isItem)
@@ -133,7 +155,7 @@ public final class Arguments {
     public static <E extends Enum<E>> ArgumentType<E> enumType(Class<E> enumClass) {
         return new ArgumentType<>() {
             @Override
-            public E parse(org.kerix.karaapi.api.command.CommandContext context, String input) {
+            public E parse(CommandContext context, String input) {
                 try {
                     return Enum.valueOf(enumClass, input.toUpperCase(Locale.ROOT));
                 } catch (IllegalArgumentException exception) {
@@ -142,8 +164,8 @@ public final class Arguments {
             }
 
             @Override
-            public java.util.List<String> suggest(org.kerix.karaapi.api.command.CommandContext context, String input) {
-                String lower = input.toLowerCase(Locale.ROOT);
+            public List<String> suggest(CommandContext context, String input) {
+                String lower = lower(input);
 
                 return Arrays.stream(enumClass.getEnumConstants())
                         .map(value -> value.name().toLowerCase(Locale.ROOT))
@@ -151,5 +173,46 @@ public final class Arguments {
                         .toList();
             }
         };
+    }
+
+    public static ArgumentType<String> choice(String... choices) {
+        List<String> allowed = Arrays.stream(choices == null ? new String[0] : choices)
+                .filter(choice -> choice != null && !choice.isBlank())
+                .map(choice -> choice.toLowerCase(Locale.ROOT))
+                .toList();
+
+        return mappedChoice(Function.identity(), allowed);
+    }
+
+    public static <T> ArgumentType<T> mappedChoice(Function<String, T> mapper, List<String> choices) {
+        return new ArgumentType<>() {
+            @Override
+            public T parse(CommandContext context, String input) {
+                String lower = lower(input);
+
+                if (!choices.contains(lower)) {
+                    throw new ArgumentParseException("Invalid value: " + input);
+                }
+
+                return mapper.apply(lower);
+            }
+
+            @Override
+            public List<String> suggest(CommandContext context, String input) {
+                String lower = lower(input);
+
+                return choices.stream()
+                        .filter(choice -> choice.startsWith(lower))
+                        .toList();
+            }
+        };
+    }
+
+    private static boolean startsWith(String value, String input) {
+        return value.toLowerCase(Locale.ROOT).startsWith(lower(input));
+    }
+
+    private static String lower(String input) {
+        return input == null ? "" : input.toLowerCase(Locale.ROOT);
     }
 }

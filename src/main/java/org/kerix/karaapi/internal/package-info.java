@@ -1,7 +1,8 @@
-/**
- * Internal KaraAPI implementation details.
- *
- * <p>Classes in this package are not part of the public API and should not be
- * used directly by plugins depending on KaraAPI.</p>
- */
+@InternalApi(reason = "Private KaraAPI implementation package.")
+@DefaultXBoundary(DefaultXBoundary.Layer.INTERNAL)
+@SinceApi("2.0.0")
 package org.kerix.karaapi.internal;
+
+import org.kerix.karaapi.api.annotation.DefaultXBoundary;
+import org.kerix.karaapi.api.annotation.InternalApi;
+import org.kerix.karaapi.api.annotation.SinceApi;

@@ -14,10 +14,7 @@ public final class MessageBundle {
     private final YamlConfig config;
     private final ComponentRenderer renderer;
 
-    public MessageBundle(
-            YamlConfig config,
-            ComponentRenderer renderer
-    ) {
+    public MessageBundle(YamlConfig config, ComponentRenderer renderer) {
         this.config = Objects.requireNonNull(config, "config");
         this.renderer = Objects.requireNonNull(renderer, "renderer");
     }
@@ -52,10 +49,8 @@ public final class MessageBundle {
     }
 
     public String plain(OfflinePlayer player, MessageKey key, PlaceholderSet set) {
-        String raw = raw(key);
-        String prefixed = raw.replace("<prefix>", raw(Messages.PREFIX));
-
-        return renderer.plain(player, prefixed, set);
+        String raw = applyPrefix(raw(key));
+        return renderer.plain(player, raw, set);
     }
 
     public Component component(MessageKey key) {
@@ -71,7 +66,8 @@ public final class MessageBundle {
     }
 
     public Component component(OfflinePlayer player, MessageKey key, PlaceholderSet set) {
-        return renderer.component(player, plain(player, key, set), PlaceholderSet.empty());
+        String raw = applyPrefix(raw(key));
+        return renderer.component(player, raw, set);
     }
 
     public Component render(OfflinePlayer player, String raw, PlaceholderSet set) {
@@ -87,11 +83,24 @@ public final class MessageBundle {
         return renderer.gradient(player, raw, set, colors);
     }
 
+    public void reload() {
+        config.reload();
+    }
+
     public YamlConfig config() {
         return config;
     }
 
     public ComponentRenderer renderer() {
         return renderer;
+    }
+
+    private String applyPrefix(String raw) {
+        String prefix = raw(Messages.PREFIX.key());
+
+        return raw
+                .replace("<prefix>", prefix)
+                .replace("%prefix%", prefix)
+                .replace("{prefix}", prefix);
     }
 }

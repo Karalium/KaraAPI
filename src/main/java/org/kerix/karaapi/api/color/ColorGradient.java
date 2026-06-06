@@ -33,8 +33,11 @@ public final class ColorGradient {
 
     public static ColorGradient of(HexColor... colors) {
         Objects.requireNonNull(colors, "colors");
-
         return new ColorGradient(Arrays.asList(colors));
+    }
+
+    public List<HexColor> stops() {
+        return stops;
     }
 
     public static ColorGradient solid(String color) {
@@ -180,10 +183,6 @@ public final class ColorGradient {
         return builder.toString();
     }
 
-    public List<HexColor> stops() {
-        return stops;
-    }
-
     private int countColoredCharacters(int[] codePoints, boolean colorSpaces) {
         int count = 0;
 
@@ -205,6 +204,6 @@ public final class ColorGradient {
     }
 
     private double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(value, min, max);
     }
 }

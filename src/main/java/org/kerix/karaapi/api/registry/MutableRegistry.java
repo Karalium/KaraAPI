@@ -39,7 +39,6 @@ public final class MutableRegistry<T> implements Registry<T> {
 
     public MutableRegistry<T> replace(String id, T value) {
         Objects.requireNonNull(value, "value");
-
         values.put(normalize(id), value);
         return this;
     }
@@ -115,6 +114,7 @@ public final class MutableRegistry<T> implements Registry<T> {
 
         return id.trim()
                 .toLowerCase(Locale.ROOT)
-                .replace(" ", "_");
+                .replace(" ", "_")
+                .replace("-", "_");
     }
 }

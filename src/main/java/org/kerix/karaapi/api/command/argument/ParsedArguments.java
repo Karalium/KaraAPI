@@ -5,7 +5,19 @@ import java.util.Map;
 
 public final class ParsedArguments {
 
-    private final Map<String, Object> values = new HashMap<>();
+    private final Map<String, Object> values;
+
+    public ParsedArguments() {
+        this.values = new HashMap<>();
+    }
+
+    private ParsedArguments(Map<String, Object> values) {
+        this.values = new HashMap<>(values);
+    }
+
+    public static ParsedArguments empty() {
+        return new ParsedArguments();
+    }
 
     public <T> void put(String name, T value) {
         values.put(name, value);
@@ -42,5 +54,9 @@ public final class ParsedArguments {
 
     public boolean has(String name) {
         return values.containsKey(name);
+    }
+
+    public Map<String, Object> values() {
+        return Map.copyOf(values);
     }
 }

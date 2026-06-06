@@ -1,7 +1,6 @@
 package org.kerix.karaapi.api.color;
 
 import net.kyori.adventure.text.format.TextColor;
-
 import java.util.Locale;
 import java.util.Objects;
 
@@ -125,6 +124,6 @@ public record HexColor(int red, int green, int blue) {
     }
 
     private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
+        return Math.clamp(value, min, max);
     }
 }

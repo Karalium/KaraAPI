@@ -16,6 +16,46 @@ public record PaginationControls(
     public PaginationControls {
         Objects.requireNonNull(previous, "previous");
         Objects.requireNonNull(next, "next");
-        Objects.requireNonNull(back, "back");
+
+        previous = previous.clone();
+        next = next.clone();
+        back = back == null ? null : back.clone();
+
+        validateSlot(previousSlot, "previousSlot");
+        validateSlot(nextSlot, "nextSlot");
+
+        if (back != null) {
+            validateSlot(backSlot, "backSlot");
+        }
+    }
+
+    public static PaginationControls of(
+            ItemStack previous,
+            ItemStack next,
+            int previousSlot,
+            int nextSlot
+    ) {
+        return new PaginationControls(previous, next, null, previousSlot, nextSlot, -1);
+    }
+
+    public static PaginationControls withBack(
+            ItemStack previous,
+            ItemStack next,
+            ItemStack back,
+            int previousSlot,
+            int nextSlot,
+            int backSlot
+    ) {
+        return new PaginationControls(previous, next, back, previousSlot, nextSlot, backSlot);
+    }
+
+    public boolean hasBack() {
+        return back != null && backSlot >= 0;
+    }
+
+    private static void validateSlot(int slot, String name) {
+        if (slot < 0 || slot >= 54) {
+            throw new IllegalArgumentException(name + " must be between 0 and 53.");
+        }
     }
 }
