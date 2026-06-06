@@ -11,7 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Repairable;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.kerix.karaapi.paper.item.PaperItems;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+@ApiBoundary
 public class ItemBuilder implements ItemProvider, Cloneable {
 
     protected ItemStack item;
@@ -27,24 +28,43 @@ public class ItemBuilder implements ItemProvider, Cloneable {
         this.item = Objects.requireNonNull(item, "item");
     }
 
-    public static ItemBuilder of(Material material, int amount) {
-        return new ItemBuilder(PaperItems.create(material, amount));
+    public static ItemBuilder of(Material material) {
+        return of(material, 1);
     }
 
-    public ItemBuilder type(Material material) {
-        this.item = PaperItems.withType(this.item, material);
-        return this;
+    public static ItemBuilder of(Material material, int amount) {
+        Objects.requireNonNull(material, "material");
+
+        if (!material.isItem()) {
+            throw new IllegalArgumentException(material + " is not an item material.");
+        }
+
+        if (amount < 1) {
+            throw new IllegalArgumentException("Item amount must be at least 1.");
+        }
+
+        return new ItemBuilder(new ItemStack(material, amount));
     }
 
     public static ItemBuilder from(ItemStack item) {
         Objects.requireNonNull(item, "item");
-
         return new ItemBuilder(item.clone());
     }
 
+    public ItemBuilder type(Material material) {
+        Objects.requireNonNull(material, "material");
+
+        if (!material.isItem()) {
+            throw new IllegalArgumentException(material + " is not an item material.");
+        }
+
+        item.setType(material);
+        return this;
+    }
+
     public ItemBuilder amount(int amount) {
-        if (amount <= 0) {
-            throw new IllegalArgumentException("Item amount must be greater than 0.");
+        if (amount < 1) {
+            throw new IllegalArgumentException("Item amount must be at least 1.");
         }
 
         item.setAmount(amount);
@@ -57,7 +77,6 @@ public class ItemBuilder implements ItemProvider, Cloneable {
 
     public ItemBuilder name(Component name) {
         Objects.requireNonNull(name, "name");
-
         return meta(meta -> meta.displayName(name));
     }
 
@@ -71,13 +90,11 @@ public class ItemBuilder implements ItemProvider, Cloneable {
 
     public ItemBuilder lore(Component... lines) {
         Objects.requireNonNull(lines, "lines");
-
         return lore(Arrays.asList(lines));
     }
 
     public ItemBuilder lore(List<Component> lore) {
         Objects.requireNonNull(lore, "lore");
-
         return meta(meta -> meta.lore(new ArrayList<>(lore)));
     }
 
@@ -127,27 +144,27 @@ public class ItemBuilder implements ItemProvider, Cloneable {
         return enchant(enchantment, level, true);
     }
 
-    public ItemBuilder enchant(Enchantment enchantment, int level, boolean ignoreLevelRestriction) {
+    public ItemBuilder enchant(
+            Enchantment enchantment,
+            int level,
+            boolean ignoreLevelRestriction
+    ) {
         Objects.requireNonNull(enchantment, "enchantment");
-
         return meta(meta -> meta.addEnchant(enchantment, level, ignoreLevelRestriction));
     }
 
     public ItemBuilder removeEnchant(Enchantment enchantment) {
         Objects.requireNonNull(enchantment, "enchantment");
-
         return meta(meta -> meta.removeEnchant(enchantment));
     }
 
     public ItemBuilder flags(ItemFlag... flags) {
         Objects.requireNonNull(flags, "flags");
-
         return meta(meta -> meta.addItemFlags(flags));
     }
 
     public ItemBuilder removeFlags(ItemFlag... flags) {
         Objects.requireNonNull(flags, "flags");
-
         return meta(meta -> meta.removeItemFlags(flags));
     }
 
@@ -187,11 +204,8 @@ public class ItemBuilder implements ItemProvider, Cloneable {
         return meta(meta -> meta.getPersistentDataContainer().set(key, type, value));
     }
 
-    public <P, C> ItemBuilder removeData(
-            NamespacedKey key
-    ) {
+    public ItemBuilder removeData(NamespacedKey key) {
         Objects.requireNonNull(key, "key");
-
         return meta(meta -> meta.getPersistentDataContainer().remove(key));
     }
 
@@ -252,7 +266,10 @@ public class ItemBuilder implements ItemProvider, Cloneable {
         return this;
     }
 
-    public <M extends ItemMeta> ItemBuilder meta(Class<M> metaType, Consumer<M> editor) {
+    public <M extends ItemMeta> ItemBuilder meta(
+            Class<M> metaType,
+            Consumer<M> editor
+    ) {
         Objects.requireNonNull(metaType, "metaType");
         Objects.requireNonNull(editor, "editor");
 
@@ -272,7 +289,6 @@ public class ItemBuilder implements ItemProvider, Cloneable {
         }
 
         M typedMeta = metaType.cast(meta);
-
         editor.accept(typedMeta);
         item.setItemMeta(typedMeta);
 

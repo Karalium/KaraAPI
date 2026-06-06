@@ -5,13 +5,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.kerix.karaapi.api.command.argument.ArgumentSchema;
+import org.kerix.karaapi.api.command.argument.ArgumentType;
+
 public final class CommandBuilder {
 
     private final String name;
-
     private final List<String> aliases = new ArrayList<>();
     private final List<CommandRequirement> requirements = new ArrayList<>();
     private final List<CommandNode> children = new ArrayList<>();
+    private final ArgumentSchema arguments = ArgumentSchema.create();
 
     private String usage;
     private CommandAction action;
@@ -26,7 +29,7 @@ public final class CommandBuilder {
     }
 
     public CommandBuilder alias(String alias) {
-        this.aliases.add(Objects.requireNonNull(alias, "alias"));
+        aliases.add(Objects.requireNonNull(alias, "alias"));
         return this;
     }
 
@@ -43,6 +46,21 @@ public final class CommandBuilder {
         return this;
     }
 
+    public <T> CommandBuilder argument(String name, ArgumentType<T> type) {
+        arguments.required(name, type);
+        return this;
+    }
+
+    public <T> CommandBuilder optionalArgument(String name, ArgumentType<T> type, T defaultValue) {
+        arguments.optional(name, type, defaultValue);
+        return this;
+    }
+
+    public CommandBuilder greedyArgument(String name) {
+        arguments.greedy(name);
+        return this;
+    }
+
     public CommandBuilder permission(String permission) {
         return requires(Requirements.permission(permission));
     }
@@ -56,7 +74,7 @@ public final class CommandBuilder {
     }
 
     public CommandBuilder requires(CommandRequirement requirement) {
-        this.requirements.add(Objects.requireNonNull(requirement, "requirement"));
+        requirements.add(Objects.requireNonNull(requirement, "requirement"));
         return this;
     }
 
@@ -75,7 +93,7 @@ public final class CommandBuilder {
     }
 
     public CommandBuilder then(CommandNode child) {
-        this.children.add(Objects.requireNonNull(child, "child"));
+        children.add(Objects.requireNonNull(child, "child"));
         return this;
     }
 
@@ -84,6 +102,7 @@ public final class CommandBuilder {
                 name,
                 aliases,
                 usage,
+                arguments,
                 action,
                 suggestion,
                 requirements,

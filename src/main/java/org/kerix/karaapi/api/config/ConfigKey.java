@@ -1,5 +1,6 @@
 package org.kerix.karaapi.api.config;
 
+import java.util.List;
 import java.util.Objects;
 
 public record ConfigKey<T>(
@@ -39,5 +40,8 @@ public record ConfigKey<T>(
 
     public static <T> ConfigKey<T> of(String path, T defaultValue, ConfigType<T> type) {
         return new ConfigKey<>(path, defaultValue, type);
+    }
+    public static ConfigKey<List<String>> stringList(String path, List<String> defaultValue) {
+        return new ConfigKey<>(path, defaultValue, ConfigTypes.STRING_LIST);
     }
 }

@@ -14,8 +14,20 @@ public record CustomItemAttack(
         ItemStack item
 ) {
 
+    public boolean cancelled() {
+        return event.isCancelled();
+    }
+
     public void cancelled(boolean cancelled) {
         event.setCancelled(cancelled);
+    }
+
+    public void deny() {
+        cancelled(true);
+    }
+
+    public double damage() {
+        return event.getDamage();
     }
 
     public void damage(double damage) {

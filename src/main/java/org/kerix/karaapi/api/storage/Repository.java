@@ -16,4 +16,10 @@ public interface Repository<K, V> {
     List<K> ids();
 
     List<V> loadAll();
+
+    default V require(K id) {
+        return load(id).orElseThrow(
+                () -> new StorageException("Missing stored value for id: " + id)
+        );
+    }
 }

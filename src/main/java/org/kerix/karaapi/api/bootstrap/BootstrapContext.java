@@ -2,6 +2,7 @@ package org.kerix.karaapi.api.bootstrap;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.config.ConfigService;
+import org.kerix.karaapi.api.effect.EffectService;
 import org.kerix.karaapi.api.event.EventBus;
 import org.kerix.karaapi.api.item.custom.CustomItemService;
 import org.kerix.karaapi.api.menu.MenuService;
@@ -12,7 +13,6 @@ import org.kerix.karaapi.api.recipe.RecipeService;
 import org.kerix.karaapi.api.region.RegionService;
 import org.kerix.karaapi.api.registry.RegistryService;
 import org.kerix.karaapi.api.requirement.RequirementService;
-import org.kerix.karaapi.api.scheduler.KaraScheduler;
 import org.kerix.karaapi.api.startup.CommandRegistrar;
 import org.kerix.karaapi.api.startup.ListenerRegistrar;
 import org.kerix.karaapi.api.startup.StartupAnnouncer;
@@ -49,8 +49,9 @@ public record BootstrapContext(
         RegionService regions,
 
         EventBus events,
-        KaraScheduler scheduler,
-        RecipeService recipes
+        org.kerix.karaapi.api.scheduler.SchedulerService scheduler,
+        RecipeService recipes,
+        EffectService effects
 ) {
 
     public <T> T service(Class<T> type) {

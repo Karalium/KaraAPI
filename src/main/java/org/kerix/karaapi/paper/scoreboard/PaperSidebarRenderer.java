@@ -8,12 +8,15 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.ui.SidebarRenderer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public final class PaperSidebarRenderer {
+@MainThread
+public final class PaperSidebarRenderer implements SidebarRenderer {
 
     private static final int MAX_LINES = 15;
 

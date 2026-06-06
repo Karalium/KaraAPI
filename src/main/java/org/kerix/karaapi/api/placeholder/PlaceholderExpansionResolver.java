@@ -1,6 +1,5 @@
 package org.kerix.karaapi.api.placeholder;
 
-
 import org.bukkit.OfflinePlayer;
 
 @FunctionalInterface

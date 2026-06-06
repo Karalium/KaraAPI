@@ -1,7 +1,12 @@
 package org.kerix.karaapi.api.task;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.DependsOn;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
+import org.kerix.karaapi.api.scheduler.SchedulerService;
+import org.kerix.karaapi.api.tick.TickOrchestrator;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -10,15 +15,23 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@ManagedService(
+        value = TaskService.class,
+        priority = 5,
+        registerAnnotatedTicks = false
+)
+@DependsOn(SchedulerService.class)
+@MainThread
 public final class TaskService implements Stoppable {
 
     private final JavaPlugin hostPlugin;
+    private final SchedulerService scheduler;
     private final Map<String, TaskGroup> groups = new LinkedHashMap<>();
-
     private final TaskGroup defaultGroup;
 
-    public TaskService(JavaPlugin hostPlugin) {
+    public TaskService(JavaPlugin hostPlugin, SchedulerService scheduler) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
+        this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
         this.defaultGroup = group("default");
     }
 
@@ -27,7 +40,7 @@ public final class TaskService implements Stoppable {
 
         return groups.computeIfAbsent(
                 key,
-                ignored -> new TaskGroup(hostPlugin, key)
+                ignored -> new TaskGroup(hostPlugin, key, scheduler)
         );
     }
 
@@ -130,6 +143,10 @@ public final class TaskService implements Stoppable {
 
     public JavaPlugin hostPlugin() {
         return hostPlugin;
+    }
+
+    public SchedulerService scheduler() {
+        return scheduler;
     }
 
     private static String normalize(String name) {

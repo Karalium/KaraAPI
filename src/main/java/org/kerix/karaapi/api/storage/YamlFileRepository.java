@@ -7,8 +7,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+
+import static org.kerix.karaapi.api.config.YamlConfig.getString;
 
 public final class YamlFileRepository<K, V> implements Repository<K, V> {
 
@@ -25,17 +28,22 @@ public final class YamlFileRepository<K, V> implements Repository<K, V> {
             Function<String, K> fileNameToId,
             StorageCodec<V> codec
     ) {
-        this.hostPlugin = hostPlugin;
-        this.folder = new File(hostPlugin.getDataFolder(), folderPath);
-        this.idToFileName = idToFileName;
-        this.fileNameToId = fileNameToId;
-        this.codec = codec;
+        this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
+        this.folder = new File(hostPlugin.getDataFolder(), normalizeFolderPath(folderPath));
+        this.idToFileName = Objects.requireNonNull(idToFileName, "idToFileName");
+        this.fileNameToId = Objects.requireNonNull(fileNameToId, "fileNameToId");
+        this.codec = Objects.requireNonNull(codec, "codec");
 
-        this.folder.mkdirs();
+        if (!folder.exists() && !folder.mkdirs()) {
+            throw new StorageException("Could not create storage folder: " + folder.getPath());
+        }
     }
 
     @Override
-    public void save(K id, V value) {
+    public synchronized void save(K id, V value) {
+        Objects.requireNonNull(id, "id");
+        Objects.requireNonNull(value, "value");
+
         File file = file(id);
         YamlConfiguration yaml = new YamlConfiguration();
 
@@ -49,7 +57,9 @@ public final class YamlFileRepository<K, V> implements Repository<K, V> {
     }
 
     @Override
-    public Optional<V> load(K id) {
+    public synchronized Optional<V> load(K id) {
+        Objects.requireNonNull(id, "id");
+
         File file = file(id);
 
         if (!file.exists()) {
@@ -62,12 +72,15 @@ public final class YamlFileRepository<K, V> implements Repository<K, V> {
     }
 
     @Override
-    public boolean exists(K id) {
+    public synchronized boolean exists(K id) {
+        Objects.requireNonNull(id, "id");
         return file(id).exists();
     }
 
     @Override
-    public void delete(K id) {
+    public synchronized void delete(K id) {
+        Objects.requireNonNull(id, "id");
+
         File file = file(id);
 
         if (file.exists() && !file.delete()) {
@@ -76,7 +89,7 @@ public final class YamlFileRepository<K, V> implements Repository<K, V> {
     }
 
     @Override
-    public List<K> ids() {
+    public synchronized List<K> ids() {
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".yml"));
 
         if (files == null) {
@@ -95,18 +108,18 @@ public final class YamlFileRepository<K, V> implements Repository<K, V> {
             ids.add(fileNameToId.apply(name));
         }
 
-        return ids;
+        return List.copyOf(ids);
     }
 
     @Override
-    public List<V> loadAll() {
+    public synchronized List<V> loadAll() {
         List<V> values = new ArrayList<>();
 
         for (K id : ids()) {
             load(id).ifPresent(values::add);
         }
 
-        return values;
+        return List.copyOf(values);
     }
 
     public File folder() {
@@ -118,12 +131,36 @@ public final class YamlFileRepository<K, V> implements Repository<K, V> {
     }
 
     private File file(K id) {
-        String fileName = idToFileName.apply(id);
+        String fileName = normalizeFileName(idToFileName.apply(id));
 
         if (!fileName.endsWith(".yml")) {
             fileName += ".yml";
         }
 
         return new File(folder, fileName);
+    }
+
+    private static String normalizeFolderPath(String path) {
+        if (path == null || path.isBlank()) {
+            return "storage";
+        }
+
+        return normalizeRelativePath(path);
+    }
+
+    private static String normalizeFileName(String fileName) {
+        Objects.requireNonNull(fileName, "fileName");
+
+        String normalized = normalizeRelativePath(fileName);
+
+        if (normalized.contains("/")) {
+            throw new IllegalArgumentException("Storage file name cannot contain folders: " + fileName);
+        }
+
+        return normalized;
+    }
+
+    private static String normalizeRelativePath(String path) {
+        return getString(path);
     }
 }

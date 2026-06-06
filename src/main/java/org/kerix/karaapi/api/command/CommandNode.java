@@ -2,6 +2,9 @@ package org.kerix.karaapi.api.command;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.kerix.karaapi.api.command.argument.ArgumentParseException;
+import org.kerix.karaapi.api.command.argument.ArgumentSchema;
+import org.kerix.karaapi.api.command.argument.ParsedArguments;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,6 +21,7 @@ public final class CommandNode {
     private final String name;
     private final Set<String> aliases;
     private final String usage;
+    private final ArgumentSchema arguments;
     private final CommandAction action;
     private final CommandSuggestion suggestion;
     private final List<CommandRequirement> requirements;
@@ -28,6 +32,7 @@ public final class CommandNode {
             String name,
             Collection<String> aliases,
             String usage,
+            ArgumentSchema arguments,
             CommandAction action,
             CommandSuggestion suggestion,
             List<CommandRequirement> requirements,
@@ -36,6 +41,7 @@ public final class CommandNode {
         this.name = normalizeRequired(name, "name");
         this.aliases = normalizeAliases(aliases);
         this.usage = usage;
+        this.arguments = arguments == null ? ArgumentSchema.create() : arguments.copy();
         this.action = action;
         this.suggestion = suggestion;
         this.requirements = List.copyOf(requirements == null ? List.of() : requirements);
@@ -55,6 +61,10 @@ public final class CommandNode {
         return usage;
     }
 
+    public ArgumentSchema arguments() {
+        return arguments.copy();
+    }
+
     public List<CommandNode> children() {
         return children;
     }
@@ -69,7 +79,6 @@ public final class CommandNode {
 
     public boolean matches(String input) {
         String normalized = normalize(input);
-
         return name.equals(normalized) || aliases.contains(normalized);
     }
 
@@ -87,7 +96,8 @@ public final class CommandNode {
                 label,
                 args,
                 match.consumedArgs(),
-                match.node()
+                match.node(),
+                ParsedArguments.empty()
         );
 
         for (CommandNode node : match.path()) {
@@ -105,11 +115,14 @@ public final class CommandNode {
         }
 
         try {
+            ParsedArguments parsed = match.node().arguments.parse(context);
+            CommandContext parsedContext = context.withParsed(parsed);
+
             return Objects.requireNonNullElse(
-                    match.node().action.execute(context),
+                    match.node().action.execute(parsedContext),
                     CommandResult.success()
             );
-        } catch (IllegalArgumentException exception) {
+        } catch (ArgumentParseException | IllegalArgumentException exception) {
             return CommandResult.fail(exception.getMessage());
         }
     }
@@ -133,7 +146,7 @@ public final class CommandNode {
             CommandNode child = current.child(safeArgs[depth]);
 
             if (child == null) {
-                return List.of();
+                break;
             }
 
             current = child;
@@ -141,14 +154,11 @@ public final class CommandNode {
         }
 
         String currentInput = safeArgs[safeArgs.length - 1];
+
         List<String> childSuggestions = current.childNamesStartingWith(currentInput);
 
         if (!childSuggestions.isEmpty()) {
             return childSuggestions;
-        }
-
-        if (current.suggestion == null) {
-            return List.of();
         }
 
         CommandContext context = new CommandContext(
@@ -157,21 +167,29 @@ public final class CommandNode {
                 label,
                 safeArgs,
                 depth,
-                current
+                current,
+                ParsedArguments.empty()
         );
 
-        return current.suggestion.suggest(context, currentInput)
-                .stream()
-                .filter(value -> value.toLowerCase(Locale.ROOT)
-                        .startsWith(currentInput.toLowerCase(Locale.ROOT)))
-                .toList();
+        int argumentIndex = Math.max(0, safeArgs.length - depth - 1);
+        List<String> argumentSuggestions = current.arguments.suggest(context, argumentIndex, currentInput);
+
+        if (!argumentSuggestions.isEmpty()) {
+            return filterStartingWith(argumentSuggestions, currentInput);
+        }
+
+        if (current.suggestion == null) {
+            return List.of();
+        }
+
+        return filterStartingWith(current.suggestion.suggest(context, currentInput), currentInput);
     }
 
     private Match find(String[] args) {
         String[] safeArgs = args == null ? new String[0] : args;
-
         CommandNode current = this;
         List<CommandNode> path = new ArrayList<>();
+
         path.add(current);
 
         int depth = 0;
@@ -205,17 +223,35 @@ public final class CommandNode {
     }
 
     private String resolvedUsage(String label) {
+        String commandLabel = label == null || label.isBlank() ? name : label;
+
         if (usage != null && !usage.isBlank()) {
-            return usage.replace("<label>", label);
+            return usage.replace("{label}", commandLabel);
         }
 
-        if (children.isEmpty()) {
-            return "/" + label;
+        StringBuilder builder = new StringBuilder("/")
+                .append(commandLabel);
+
+        if (!children.isEmpty()) {
+            builder.append(" <")
+                    .append(String.join("|", children.stream().map(CommandNode::name).toList()))
+                    .append(">");
         }
 
-        return "/" + label + " <" + String.join("|", children.stream()
-                .map(CommandNode::name)
-                .toList()) + ">";
+        if (!arguments.empty()) {
+            builder.append(" ")
+                    .append(arguments.usage());
+        }
+
+        return builder.toString();
+    }
+
+    private static List<String> filterStartingWith(List<String> values, String input) {
+        String lower = input == null ? "" : input.toLowerCase(Locale.ROOT);
+
+        return values.stream()
+                .filter(value -> value.toLowerCase(Locale.ROOT).startsWith(lower))
+                .toList();
     }
 
     private static Map<String, CommandNode> buildChildLookup(List<CommandNode> children) {
@@ -229,16 +265,14 @@ public final class CommandNode {
             }
         }
 
-        return lookup;
+        return Map.copyOf(lookup);
     }
 
     private static void putChild(Map<String, CommandNode> lookup, String key, CommandNode child) {
         CommandNode previous = lookup.put(normalize(key), child);
 
         if (previous != null && previous != child) {
-            throw new IllegalStateException(
-                    "Duplicate command child or alias: " + key
-            );
+            throw new IllegalStateException("Duplicate command child or alias: " + key);
         }
     }
 

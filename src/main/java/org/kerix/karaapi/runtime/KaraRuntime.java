@@ -2,6 +2,7 @@ package org.kerix.karaapi.runtime;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.kerix.karaapi.api.PluginHandle;
+import org.kerix.karaapi.api.annotation.InternalApi;
 import org.kerix.karaapi.api.bootstrap.PluginModule;
 
 import java.util.IdentityHashMap;
@@ -11,6 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 
+@InternalApi(reason = "Runtime bootstrap engine; use KaraAPI.boot() instead")
 public final class KaraRuntime {
 
     private final JavaPlugin apiPlugin;
@@ -20,14 +22,12 @@ public final class KaraRuntime {
         this.apiPlugin = Objects.requireNonNull(apiPlugin, "apiPlugin");
     }
 
-    public PluginHandle boot(JavaPlugin hostPlugin, PluginModule... modules) {
+    public synchronized PluginHandle boot(JavaPlugin hostPlugin, PluginModule... modules) {
         Objects.requireNonNull(hostPlugin, "hostPlugin");
         Objects.requireNonNull(modules, "modules");
 
         if (kernels.containsKey(hostPlugin)) {
-            throw new IllegalStateException(
-                    hostPlugin.getName() + " is already booted by KaraAPI."
-            );
+            throw new IllegalStateException(hostPlugin.getName() + " is already booted by KaraAPI.");
         }
 
         PluginKernel kernel = new PluginKernel(apiPlugin, hostPlugin);
@@ -57,7 +57,7 @@ public final class KaraRuntime {
         }
     }
 
-    public void shutdown(JavaPlugin hostPlugin) {
+    public synchronized void shutdown(JavaPlugin hostPlugin) {
         Objects.requireNonNull(hostPlugin, "hostPlugin");
 
         PluginKernel kernel = kernels.remove(hostPlugin);
@@ -69,8 +69,11 @@ public final class KaraRuntime {
         kernel.shutdown();
     }
 
-    public void shutdownAll() {
-        for (PluginKernel kernel : List.copyOf(kernels.values())) {
+    public synchronized void shutdownAll() {
+        List<PluginKernel> snapshot = List.copyOf(kernels.values());
+        kernels.clear();
+
+        for (PluginKernel kernel : snapshot) {
             try {
                 kernel.shutdown();
             } catch (Throwable throwable) {
@@ -81,19 +84,15 @@ public final class KaraRuntime {
                 );
             }
         }
-
-        kernels.clear();
     }
 
-    public boolean isBooted(JavaPlugin hostPlugin) {
+    public synchronized boolean isBooted(JavaPlugin hostPlugin) {
         Objects.requireNonNull(hostPlugin, "hostPlugin");
-
         return kernels.containsKey(hostPlugin);
     }
 
-    public Optional<PluginKernel> kernel(JavaPlugin hostPlugin) {
+    public synchronized Optional<PluginKernel> kernel(JavaPlugin hostPlugin) {
         Objects.requireNonNull(hostPlugin, "hostPlugin");
-
         return Optional.ofNullable(kernels.get(hostPlugin));
     }
 

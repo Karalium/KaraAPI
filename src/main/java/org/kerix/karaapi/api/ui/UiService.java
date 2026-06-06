@@ -6,6 +6,9 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.DependsOn;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.message.MessageService;
 import org.kerix.karaapi.api.placeholder.PlaceholderSet;
@@ -13,20 +16,24 @@ import org.kerix.karaapi.api.placeholder.PlaceholderSet;
 import java.time.Duration;
 import java.util.Objects;
 
+@ManagedService(
+        value = UiService.class,
+        priority = 45,
+        registerAnnotatedTicks = false
+)
+@DependsOn(MessageService.class)
+@MainThread
 public final class UiService implements Stoppable {
 
     private final JavaPlugin hostPlugin;
     private final SidebarManager sidebars;
 
-    private MessageService messages;
+    private final MessageService messages;
 
-    public UiService(JavaPlugin hostPlugin) {
+    public UiService(JavaPlugin hostPlugin, SidebarRendererFactory sidebarRendererFactory , MessageService messages) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
-        this.sidebars = new SidebarManager();
-    }
-
-    public void messages(MessageService messages) {
-        this.messages = Objects.requireNonNull(messages, "messages");
+        this.sidebars = new SidebarManager(sidebarRendererFactory);
+        this.messages = messages;
     }
 
     public void chat(Audience audience, Component message) {

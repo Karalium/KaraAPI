@@ -1,8 +1,14 @@
 package org.kerix.karaapi.api.requirement;
 
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.registry.MutableRegistry;
 
+@ManagedService(
+        value = RequirementService.class,
+        priority = 25,
+        registerAnnotatedTicks = false
+)
 public final class RequirementService implements Stoppable {
 
     private final MutableRegistry<Requirement<?>> requirements =

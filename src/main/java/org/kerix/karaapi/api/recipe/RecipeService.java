@@ -2,44 +2,112 @@ package org.kerix.karaapi.api.recipe;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.ApiBoundary;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
-import org.kerix.karaapi.paper.recipe.PaperRecipeRegistrar;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
+@ManagedService(
+        value = RecipeService.class,
+        priority = 75,
+        registerAnnotatedTicks = false
+)
+@MainThread
 public final class RecipeService implements Stoppable {
 
     private final JavaPlugin hostPlugin;
-    private final PaperRecipeRegistrar registrar;
-    private final Set<NamespacedKey> registered = new LinkedHashSet<>();
+    private final RecipeRegistrar registrar;
+    private final Map<NamespacedKey, RecipeRegistration> registrations = new LinkedHashMap<>();
 
-    public RecipeService(JavaPlugin hostPlugin) {
-        this.hostPlugin = hostPlugin;
-        this.registrar = new PaperRecipeRegistrar(hostPlugin);
+    private boolean stopped;
+
+    public RecipeService(JavaPlugin hostPlugin, RecipeRegistrar registrar) {
+        this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
+        this.registrar = Objects.requireNonNull(registrar, "registrar");
     }
 
-    public void register(KaraRecipe recipe) {
-        registrar.register(recipe.recipe());
-        registered.add(recipe.key());
+    public RecipeRegistration register(RecipeDefinition definition) {
+        Objects.requireNonNull(definition, "definition");
+        return register(definition.key(), definition.recipe());
+    }
+
+    public RecipeRegistration register(NamespacedKey key, Recipe recipe) {
+        ensureRunning();
+        Objects.requireNonNull(key, "key");
+        Objects.requireNonNull(recipe, "recipe");
+
+        if (registrations.containsKey(key)) {
+            throw new RecipeException("Recipe is already registered: " + key);
+        }
+
+        registrar.register(recipe);
+
+        RecipeRegistration registration = new RecipeRegistration(
+                key,
+                () -> unregister(key)
+        );
+
+        registrations.put(key, registration);
+
+        return registration;
+    }
+
+    public void replace(RecipeDefinition definition) {
+        Objects.requireNonNull(definition, "definition");
+
+        if (registered(definition.key())) {
+            unregister(definition.key());
+        }
+
+        register(definition);
     }
 
     public void unregister(NamespacedKey key) {
+        Objects.requireNonNull(key, "key");
+
+        RecipeRegistration registration = registrations.remove(key);
+
+        if (registration == null) {
+            registrar.unregister(key);
+            return;
+        }
+
         registrar.unregister(key);
-        registered.remove(key);
+    }
+
+    public boolean registered(NamespacedKey key) {
+        Objects.requireNonNull(key, "key");
+        return registrations.containsKey(key);
     }
 
     public void discover(Player player, NamespacedKey key) {
+        ensureRunning();
         registrar.discover(player, key);
     }
 
+    public void discover(Player player, RecipeDefinition definition) {
+        Objects.requireNonNull(definition, "definition");
+        discover(player, definition.key());
+    }
+
     public void discoverAll(Player player) {
-        registrar.discover(player, registered);
+        ensureRunning();
+        registrar.discover(player, registrations.keySet());
     }
 
     public Set<NamespacedKey> registeredKeys() {
-        return Set.copyOf(registered);
+        return Set.copyOf(registrations.keySet());
+    }
+
+    public int registeredCount() {
+        return registrations.size();
     }
 
     public JavaPlugin hostPlugin() {
@@ -48,10 +116,22 @@ public final class RecipeService implements Stoppable {
 
     @Override
     public void stop() {
-        for (NamespacedKey key : Set.copyOf(registered)) {
+        if (stopped) {
+            return;
+        }
+
+        stopped = true;
+
+        for (NamespacedKey key : Set.copyOf(registrations.keySet())) {
             unregister(key);
         }
 
-        registered.clear();
+        registrations.clear();
+    }
+
+    private void ensureRunning() {
+        if (stopped) {
+            throw new IllegalStateException("RecipeService has already stopped.");
+        }
     }
 }

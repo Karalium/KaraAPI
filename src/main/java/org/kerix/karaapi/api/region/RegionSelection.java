@@ -8,11 +8,19 @@ public final class RegionSelection {
     private Location second;
 
     public void first(Location first) {
-        this.first = first == null ? null : first.clone();
+        this.first = clone(first);
     }
 
     public void second(Location second) {
-        this.second = second == null ? null : second.clone();
+        this.second = clone(second);
+    }
+
+    public boolean hasFirst() {
+        return first != null;
+    }
+
+    public boolean hasSecond() {
+        return second != null;
     }
 
     public boolean complete() {
@@ -21,22 +29,26 @@ public final class RegionSelection {
 
     public CuboidRegion cuboid(String id) {
         if (!complete()) {
-            throw new IllegalStateException("Region selection is incomplete.");
+            throw new RegionException("Region selection is incomplete.");
         }
 
         return new CuboidRegion(id, first, second);
     }
 
     public Location first() {
-        return first == null ? null : first.clone();
+        return clone(first);
     }
 
     public Location second() {
-        return second == null ? null : second.clone();
+        return clone(second);
     }
 
     public void clear() {
         first = null;
         second = null;
+    }
+
+    private static Location clone(Location location) {
+        return location == null ? null : location.clone();
     }
 }

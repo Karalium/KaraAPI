@@ -1,10 +1,13 @@
 package org.kerix.karaapi.api.tick;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.kerix.karaapi.api.annotation.DependsOn;
+import org.kerix.karaapi.api.annotation.MainThread;
+import org.kerix.karaapi.api.annotation.ManagedService;
 import org.kerix.karaapi.api.lifecycle.Stoppable;
 import org.kerix.karaapi.api.lifecycle.Tickable;
-import org.kerix.karaapi.api.task.TaskHandle;
-import org.kerix.karaapi.paper.scheduler.PaperScheduler;
+import org.kerix.karaapi.api.scheduler.ScheduledTaskHandle;
+import org.kerix.karaapi.api.scheduler.SchedulerService;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,17 +18,24 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 
+@ManagedService(
+        value = TickOrchestrator.class,
+        priority = 1,
+        registerAnnotatedTicks = false
+)
+@DependsOn(SchedulerService.class)
+@MainThread
 public final class TickOrchestrator implements Stoppable {
 
     private final JavaPlugin hostPlugin;
-    private final PaperScheduler scheduler;
+    private final SchedulerService scheduler;
 
     private final Map<Long, TickBucket> buckets = new HashMap<>();
     private final Map<Tickable, Long> registeredTickables = new IdentityHashMap<>();
 
-    public TickOrchestrator(JavaPlugin hostPlugin) {
+    public TickOrchestrator(JavaPlugin hostPlugin, SchedulerService scheduler) {
         this.hostPlugin = Objects.requireNonNull(hostPlugin, "hostPlugin");
-        this.scheduler = new PaperScheduler(hostPlugin);
+        this.scheduler = Objects.requireNonNull(scheduler, "scheduler");
     }
 
     public void register(Tickable tickable) {
@@ -38,7 +48,6 @@ public final class TickOrchestrator implements Stoppable {
         long interval = Math.max(1L, tickable.tickInterval());
 
         TickBucket bucket = buckets.computeIfAbsent(interval, this::createBucket);
-
         bucket.tickables.add(tickable);
         registeredTickables.put(tickable, interval);
     }
@@ -105,7 +114,6 @@ public final class TickOrchestrator implements Stoppable {
         TickBucket bucket = new TickBucket();
 
         bucket.task = scheduler.timer(
-                "tick-bucket-" + interval,
                 interval,
                 interval,
                 () -> tickBucket(bucket)
@@ -135,6 +143,6 @@ public final class TickOrchestrator implements Stoppable {
         private final Set<Tickable> tickables =
                 Collections.newSetFromMap(new IdentityHashMap<>());
 
-        private TaskHandle task;
+        private ScheduledTaskHandle task;
     }
 }
